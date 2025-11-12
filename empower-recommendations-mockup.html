@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Recommendations - Empower</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .header {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FF8C42 0%, #FFA566 100%);
+            border-radius: 8px;
+        }
+
+        .logo h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            color: #FF8C42;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            margin-left: 52px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .recommendations-header {
+            max-width: 1400px;
+            margin: 0 auto 32px;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .recommendations-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            color: #2C2C2C;
+            margin-bottom: 12px;
+        }
+
+        .user-summary {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #FFF9F0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .summary-item strong {
+            color: #FF8C42;
+        }
+
+        .recommendations-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .event-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            background-color: #f0f0f0;
+        }
+
+        .event-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .recurring {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .one-time {
+            background: #2196F3;
+            color: white;
+        }
+
+        .match-score-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: white;
+            color: #FF8C42;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .event-content {
+            padding: 24px;
+        }
+
+        .event-content h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            color: #2C2C2C;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .event-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .match-reasons {
+            background: #FFF9F0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .match-reasons h4 {
+            font-size: 14px;
+            color: #FF8C42;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .match-reasons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .match-reasons li {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .match-reasons li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .event-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.newcomer {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .badge.small-group {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .badge.free {
+            background: #F3E5F5;
+            color: #6A1B9A;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #FF8C42 0%, #FFA566 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #FF7A2E 0%, #FF9552 100%);
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            padding: 12px 20px;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        @media (max-width: 768px) {
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-summary {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <h1>Empower</h1>
+        </div>
+        <p class="tagline">Less Scrolling. More Living.</p>
+    </div>
+
+    <div class="recommendations-header">
+        <h2>Your Personalized Recommendations</h2>
+        <p style="color: #666; margin-bottom: 16px;">Based on your profile, we found 10 perfect matches for you in the Charlottesville area</p>
+        
+        <div class="user-summary">
+            <div class="summary-item">
+                <span>🎯</span>
+                <span><strong>Profile:</strong> Introverted, Organized, Open to new experiences</span>
+            </div>
+            <div class="summary-item">
+                <span>🤝</span>
+                <span><strong>Social Need:</strong> Medium-High (29/50)</span>
+            </div>
+            <div class="summary-item">
+                <span>💪</span>
+                <span><strong>Motivation:</strong> Social Connection</span>
+            </div>
+            <div class="summary-item">
+                <span>🌟</span>
+                <span><strong>Interests:</strong> Yoga, Hiking, Photography, Meditation</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="recommendations-grid">
+        <!-- RECURRING Event Card 1 -->
+        <div class="event-card">
+            <div class="event-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?w=800')">
+                <span class="event-type-badge recurring">Recurring</span>
+                <span class="match-score-badge">94% Match</span>
+            </div>
+            
+            <div class="event-content">
+                <h3>Charlottesville Hiking Club</h3>
+                
+                <div class="event-meta">
+                    <span>📅 Every Saturday, 9:00 AM</span>
+                    <span>📍 Various Shenandoah trails • 8 miles away</span>
+                    <span>💰 Free</span>
+                    <span>👥 Small group (8-12 people)</span>
+                </div>
+                
+                <div class="match-reasons">
+                    <h4>Why this matches you:</h4>
+                    <ul>
+                        <li>Small group setting perfect for introverts</li>
+                        <li>Outdoor hiking aligns with your interests</li>
+                        <li>Recurring schedule builds consistent friendships</li>
+                    </ul>
+                </div>
+                
+                <div class="event-badges">
+                    <span class="badge newcomer">✨ Newcomer-Friendly</span>
+                    <span class="badge small-group">Small Group</span>
+                    <span class="badge free">Free</span>
+                </div>
+                
+                <div class="event-actions">
+                    <a href="https://www.meetup.com/charlottesville-hiking/" class="btn-primary" target="_blank">Join the Group</a>
+                    <button class="btn-secondary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ONE-TIME Event Card 1 -->
+        <div class="event-card">
+            <div class="event-image" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800')">
+                <span class="event-type-badge one-time">One-Time</span>
+                <span class="match-score-badge">92% Match</span>
+            </div>
+            
+            <div class="event-content">
+                <h3>Nature Photography Workshop</h3>
+                
+                <div class="event-meta">
+                    <span>📅 Saturday, November 23, 2025 • 10:00 AM - 2:00 PM</span>
+                    <span>📍 Rivanna River Trail • 4.5 miles away</span>
+                    <span>💰 $45</span>
+                    <span>👥 Small group (6-10 people)</span>
+                </div>
+                
+                <div class="match-reasons">
+                    <h4>Why this matches you:</h4>
+                    <ul>
+                        <li>Combines photography interest with outdoor setting</li>
+                        <li>Structured workshop fits your organized nature</li>
+                        <li>Small intimate group for comfortable learning</li>
+                    </ul>
+                </div>
+                
+                <div class="event-badges">
+                    <span class="badge newcomer">✨ Newcomer-Friendly</span>
+                    <span class="badge small-group">Small Group</span>
+                </div>
+                
+                <div class="event-actions">
+                    <a href="https://www.eventbrite.com/e/nature-photography-workshop" class="btn-primary" target="_blank">Register Now</a>
+                    <button class="btn-secondary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECURRING Event Card 2 -->
+        <div class="event-card">
+            <div class="event-image" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800')">
+                <span class="event-type-badge recurring">Recurring</span>
+                <span class="match-score-badge">91% Match</span>
+            </div>
+            
+            <div class="event-content">
+                <h3>Sunrise Yoga in the Park</h3>
+                
+                <div class="event-meta">
+                    <span>📅 Every Sunday, 7:30 AM</span>
+                    <span>📍 McGuffey Park • 2.3 miles away</span>
+                    <span>💰 Free (donations welcome)</span>
+                    <span>👥 Small-Medium group (12-18 people)</span>
+                </div>
+                
+                <div class="match-reasons">
+                    <h4>Why this matches you:</h4>
+                    <ul>
+                        <li>Yoga and outdoor setting match your preferences</li>
+                        <li>Relaxed, low-key atmosphere you enjoy</li>
+                        <li>Weekly consistency helps build community</li>
+                    </ul>
+                </div>
+                
+                <div class="event-badges">
+                    <span class="badge newcomer">✨ Newcomer-Friendly</span>
+                    <span class="badge free">Free</span>
+                </div>
+                
+                <div class="event-actions">
+                    <a href="https://www.instagram.com/cvilleyoga" class="btn-primary" target="_blank">Join Class</a>
+                    <button class="btn-secondary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ONE-TIME Event Card 2 -->
+        <div class="event-card">
+            <div class="event-image" style="background-image: url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=800')">
+                <span class="event-type-badge one-time">One-Time</span>
+                <span class="match-score-badge">89% Match</span>
+            </div>
+            
+            <div class="event-content">
+                <h3>Meditation & Mindfulness Intro</h3>
+                
+                <div class="event-meta">
+                    <span>📅 Thursday, November 21, 2025 • 6:30 PM - 8:00 PM</span>
+                    <span>📍 Wellness Center Downtown • 1.8 miles away</span>
+                    <span>💰 $20</span>
+                    <span>👥 Small group (8-12 people)</span>
+                </div>
+                
+                <div class="match-reasons">
+                    <h4>Why this matches you:</h4>
+                    <ul>
+                        <li>Meditation interest from your wellness preferences</li>
+                        <li>Structured workshop format you appreciate</li>
+                        <li>Intimate setting for deeper connections</li>
+                    </ul>
+                </div>
+                
+                <div class="event-badges">
+                    <span class="badge newcomer">✨ Newcomer-Friendly</span>
+                    <span class="badge small-group">Small Group</span>
+                </div>
+                
+                <div class="event-actions">
+                    <a href="https://www.eventbrite.com/e/meditation-intro" class="btn-primary" target="_blank">Sign Up</a>
+                    <button class="btn-secondary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECURRING Event Card 3 -->
+        <div class="event-card">
+            <div class="event-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?w=800')">
+                <span class="event-type-badge recurring">Recurring</span>
+                <span class="match-score-badge">88% Match</span>
+            </div>
+            
+            <div class="event-content">
+                <h3>Trail Running Group</h3>
+                
+                <div class="event-meta">
+                    <span>📅 Every Wednesday, 6:00 PM</span>
+                    <span>📍 Rivanna Trails • 5.2 miles away</span>
+                    <span>💰 Free</span>
+                    <span>👥 Medium group (15-20 people)</span>
+                </div>
+                
+                <div class="match-reasons">
+                    <h4>Why this matches you:</h4>
+                    <ul>
+                        <li>Active outdoor activity you prefer</li>
+                        <li>Regular schedule for building friendships</li>
+                        <li>All pace levels welcome - organized structure</li>
+                    </ul>
+                </div>
+                
+                <div class="event-badges">
+                    <span class="badge newcomer">✨ Newcomer-Friendly</span>
+                    <span class="badge free">Free</span>
+                </div>
+                
+                <div class="event-actions">
+                    <a href="https://www.meetup.com/cville-trail-runners/" class="btn-primary" target="_blank">Join Group</a>
+                    <button class="btn-secondary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholder for remaining 5 cards -->
+        <div class="event-card" style="opacity: 0.6;">
+            <div class="event-image" style="background-color: #e0e0e0;">
+                <span class="event-type-badge one-time">One-Time</span>
+                <span class="match-score-badge">87% Match</span>
+            </div>
+            <div class="event-content">
+                <h3>+ 5 More Recommendations</h3>
+                <p style="color: #999; font-size: 14px;">Your remaining personalized recommendations will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Save button functionality (placeholder)
+        document.querySelectorAll('.btn-secondary').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.textContent === 'Save') {
+                    this.textContent = 'Saved ✓';
+                    this.style.background = '#E8F5E9';
+                    this.style.color = '#2E7D32';
+                } else {
+                    this.textContent = 'Save';
+                    this.style.background = '#f5f5f5';
+                    this.style.color = '#666';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
