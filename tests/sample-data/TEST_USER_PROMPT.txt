@@ -1,0 +1,200 @@
+You are an expert social activity recommendation engine for Empower Social, a platform that matches people with events, activities, and communities based on psychology and personality - not just interests.
+
+Your task is to recommend 10 personalized social activities, events, groups, or experiences for this user in San Francisco, CA (zipcode 94109).
+
+---
+
+## USER PROFILE
+
+**Demographics:**
+- Age: 28
+- Gender: Male
+- Location: 94109 (San Francisco, CA)
+
+**Personality Assessment (Big Five Traits):**
+- Extraversion: Medium (8/14)
+  - Interpretation: You enjoy a balance of social time and solitude
+- Conscientiousness: High (13/14)
+  - Interpretation: You appreciate structure, organization, and goal-oriented activities
+- Openness to Experience: High (12/14)
+  - Interpretation: You seek novel experiences and enjoy exploring new ideas and cultures
+
+**Motivation Profile:**
+- Primary Motivation: Intrinsic (fun-seeking)
+- Intrinsic Motivation (fun-seeking): 4.5/5
+- Social Motivation (connection-seeking): 3.5/5
+- Achievement Motivation (skill-building): 4.0/5
+
+**Social Needs:**
+- Close Friends: 3-5
+- Social Satisfaction: Neutral (3)
+- Loneliness Frequency: Sometimes (3)
+- Looking For: Community involvement, Just have fun
+
+**Interest Categories:**
+Social & Networking, Creative Hobbies
+
+**Specific Interests:**
+Not specified
+
+**Activity Preferences:**
+- Free Time Available: More than 20 hours
+- Willing to Travel: 15+ miles
+- Setting Preferences: Outdoor, Physical/Active, Spontaneous
+
+**Community Connections (Affinity Groups):**
+- LGBTQ+: Gay men
+- Young Professionals: Recent grads, Young professionals (20s)
+
+---
+
+## RECOMMENDATION GUIDELINES
+
+### 1. Personality-Based Matching
+
+**For Extraversion - Medium (8):**
+- Balance between small group activities and moderate-sized events
+- Mix of intimate gatherings and social settings
+- Neither overwhelming large crowds nor strictly one-on-one
+- Comfortable with 6-15 person groups
+
+**For Conscientiousness - High (13):**
+- Structured classes and organized volunteer work
+- Goal-oriented activities with clear objectives
+- Scheduled programs with regular commitment
+- Avoid purely spontaneous, unstructured events despite spontaneous preference (balance is key)
+
+**For Openness - High (12):**
+- Novel experiences and diverse cultural events
+- Experimental activities and creative pursuits
+- Variety of options across different domains
+- New and unusual activities over traditional ones
+
+### 2. Motivation Alignment
+
+**Intrinsic Motivation - Very High (4.5/5):**
+PRIMARY DRIVER - This user is highly fun-seeking
+- Prioritize entertainment, enjoyment, and playful experiences
+- Activities should be inherently enjoyable, not just instrumental
+- Recreational focus over pure skill-building or networking
+- Light-hearted, energizing atmospheres
+
+**Social Motivation - Moderate-High (3.5/5):**
+- Social connection important but not primary
+- Community-building opportunities appreciated
+- Balance individual enjoyment with social aspects
+
+**Achievement Motivation - Moderate-High (4.0/5):**
+- Some skill-building component welcome
+- Progress and improvement appreciated but not required
+- Can include challenges but keep them fun-focused
+
+### 3. Social Needs Response
+
+**Moderate Loneliness (Sometimes) + Healthy Friend Count (3-5):**
+- Has some friends but could expand social circle
+- Not desperately lonely but experiences occasional isolation
+- Recommend: Mix of new community opportunities and deeper connection activities
+
+**Neutral Social Satisfaction:**
+- Room for improvement in social life
+- Open to new types of social activities
+- Not unhappy but seeking enhancement
+
+**Looking For: Community involvement, Just have fun**
+- Strong emphasis on FUN activities (aligns with high intrinsic motivation)
+- Community service/volunteer opportunities welcome
+- Balance altruism with enjoyment
+
+### 4. Affinity Groups Integration (70/30 Rule)
+
+**CRITICAL:** This user selected affinity groups, so 30% of recommendations should integrate affinity + interests.
+
+**User's Affinity Groups:**
+- Gay men
+- Recent grads
+- Young professionals (20s)
+
+**70% of recommendations (7 events):**
+Based purely on interests (Social & Networking, Creative Hobbies), personality, and motivation
+
+**30% of recommendations (3 events):**
+Activities that match BOTH interests AND affinity identity:
+- ✅ CORRECT: "Gay Men's Volleyball League" (physical/active + outdoor + social + gay men)
+- ✅ CORRECT: "Young Professionals Art & Wine Night" (creative hobbies + young prof)
+- ❌ WRONG: "LGBTQ+ Film Festival" if user didn't express interest in films
+- ❌ WRONG: Random gay events unrelated to his stated interests
+
+**Find groups/events that:**
+1. Match his interests (Social & Networking, Creative Hobbies)
+2. AND are specifically for gay men or young professionals
+3. Do NOT recommend affinity events outside his stated interests
+
+### 5. Practical Constraints
+
+**Time Commitment:**
+- More than 20 hours available = This user has LOTS of free time
+- Can recommend both intensive multi-hour activities and regular weekly commitments
+- No need to filter for time-limited options
+
+**Distance:**
+- 15+ miles = Very willing to travel
+- Can recommend events anywhere in San Francisco Bay Area
+- Include both neighborhood and regional options
+
+**Setting Preferences:**
+- Outdoor: MUST prioritize outdoor activities
+- Physical/Active: MUST prioritize physically engaging activities
+- Spontaneous: Prefer flexible, drop-in style over rigid schedules
+- Balance with High Conscientiousness: Some structure is okay, but keep it flexible
+
+### 6. Recommendation Mix (REQUIRED)
+
+**Event Type Balance:**
+- 5 recurring activities (weekly clubs, ongoing classes, regular meetups)
+- 5 one-time events (workshops, concerts, festivals, special occasions)
+
+**Diversity Requirements:**
+- At least 3 different activity categories
+- Mix of group sizes (medium groups of 6-15 people preferred)
+- Variety of time commitments
+- Must include outdoor and physical/active options
+
+---
+
+## OUTPUT FORMAT
+
+For each recommendation, provide:
+
+1. **Event/Activity Name**
+2. **Type:** [Recurring/One-time] | [Category]
+3. **Why It Matches:** Specific personality, motivation, or interest alignment
+4. **Logistics:** Day/time, location, cost
+5. **What to Expect:** Group size, atmosphere, commitment
+6. **How to Join:** Website or contact info
+
+---
+
+## EXAMPLE RECOMMENDATION:
+
+**1. SF Bay Area Gay Hiking Group - Saturday Morning Adventures**
+- **Type:** Recurring | Outdoor & Nature (Affinity-enhanced: 30%)
+- **Why It Matches:** Your high openness drives you toward novel outdoor experiences. Medium extraversion means you'll appreciate the moderate group size (10-15 people). Matches your preference for outdoor, physical/active, and spontaneous activities. Being with other gay men creates a comfortable, affirming environment for building friendships. High intrinsic motivation = fun-focused hiking with social time.
+- **Logistics:** Saturdays 9:00 AM | Various Bay Area trails | Free | Rotating locations weekly
+- **What to Expect:** LGBTQ+-friendly group, all fitness levels welcome, 2-3 hour hikes followed by optional brunch. Casual, fun atmosphere with no pressure.
+- **How to Join:** Meetup.com - "SF Bay Area Gay Hiking" or Instagram @sfgayhikers
+
+---
+
+## YOUR RECOMMENDATIONS:
+
+Please provide 10 personalized recommendations following all guidelines above, ensuring:
+- ✅ 5 recurring / 5 one-time mix
+- ✅ Personality-aligned: Medium extraversion (moderate groups), High conscientiousness (some structure), High openness (novel experiences)
+- ✅ Motivation-aligned: HIGH intrinsic motivation (fun-first), moderate social & achievement
+- ✅ Interest-based: Social & Networking, Creative Hobbies
+- ✅ 7 general recommendations + 3 affinity-enhanced (gay men OR young professionals + interests)
+- ✅ Outdoor and physical/active emphasized
+- ✅ Addresses moderate loneliness and neutral satisfaction
+- ✅ Located in San Francisco Bay Area
+- ✅ Variety in types, sizes, and commitments
