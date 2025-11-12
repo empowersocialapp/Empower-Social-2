@@ -1,112 +1,173 @@
-# GPT Prompt Template - Implementation Example
-
-## Node.js Example: Generate Prompt from Airtable Data
-
-```javascript
-const Airtable = require('airtable');
 const OpenAI = require('openai');
-
-// Initialize Airtable
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
-  .base(process.env.AIRTABLE_BASE_ID);
+const { base } = require('./airtable');
 
 // Initialize OpenAI
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('OPENAI_API_KEY must be set in environment variables');
+}
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
  * Generate personalized event recommendations for a user
  * @param {string} userId - Airtable User record ID
- * @returns {Promise<string>} Generated recommendations
+ * @param {string} [surveyResponseId] - Optional: Airtable Survey_Response record ID (if not provided, will query)
+ * @param {string} [calculatedScoresId] - Optional: Airtable Calculated_Scores record ID (if not provided, will query)
+ * @returns {Promise<Object>} {success: boolean, data: {recommendations, promptText, surveyResponseId, calculatedScoresId} | error: string}
  */
-async function generateRecommendations(userId) {
-  
-  // 1. Fetch user data
-  const user = await base('Users').find(userId);
-  
-  // 2. Get latest survey response for this user
-  const surveyResponses = await base('Survey_Responses')
-    .select({
-      filterByFormula: `{User} = '${userId}'`,
-      maxRecords: 1,
-      sort: [{ field: 'Submitted At', direction: 'desc' }]
-    })
-    .firstPage();
-  
-  if (surveyResponses.length === 0) {
-    throw new Error('No survey response found for user');
-  }
-  
-  const surveyResponse = surveyResponses[0];
-  
-  // 3. Get calculated scores
-  const calculatedScores = await base('Calculated_Scores')
-    .select({
-      filterByFormula: `{User} = '${userId}'`,
-      maxRecords: 1,
-      sort: [{ field: 'Calculated At', direction: 'desc' }]
-    })
-    .firstPage();
-  
-  if (calculatedScores.length === 0) {
-    throw new Error('No calculated scores found for user');
-  }
-  
-  const scores = calculatedScores[0];
-  
-  // 4. Build the prompt using template
-  const prompt = buildPrompt(user.fields, surveyResponse.fields, scores.fields);
-  
-  // 5. Store prompt in GPT_Prompts table
-  const promptRecord = await base('GPT_Prompts').create([
-    {
-      fields: {
-        User: [userId],
-        'Survey Response': [surveyResponse.id],
-        'Calculated Scores': [scores.id],
-        Prompt_Text: prompt,
-        Prompt_Version: 'v1.0',
-        Used_For_Recommendations: true
-      }
+async function generateRecommendations(userId, surveyResponseId = null, calculatedScoresId = null) {
+  try {
+    if (!userId) {
+      return {
+        success: false,
+        error: 'userId is required'
+      };
     }
-  ]);
-  
-  // 6. Send to GPT-4
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4-turbo',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are an expert social activity recommendation engine.'
-      },
-      {
-        role: 'user',
-        content: prompt
+
+    // 1. Fetch user data
+    const user = await base('Users').find(userId);
+    
+    // 2. Get survey response (use provided ID or query for latest)
+    let surveyResponse;
+    if (surveyResponseId) {
+      surveyResponse = await base('Survey_Responses').find(surveyResponseId);
+    } else {
+      const surveyResponses = await base('Survey_Responses')
+        .select({
+          filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
+          maxRecords: 1
+        })
+        .firstPage();
+      
+      if (surveyResponses.length === 0) {
+        return {
+          success: false,
+          error: 'No survey response found for user'
+        };
       }
-    ],
-    temperature: 0.7,
-    max_tokens: 3000
-  });
-  
-  const recommendations = completion.choices[0].message.content;
-  
-  // 7. Update GPT_Prompts record with generated recommendations
-  await base('GPT_Prompts').update([
-    {
-      id: promptRecord[0].id,
-      fields: {
-        Recommendations_Generated: recommendations
-      }
+      
+      surveyResponse = surveyResponses[0];
+      surveyResponseId = surveyResponse.id;
     }
-  ]);
-  
-  return recommendations;
+    
+    // 3. Get calculated scores (use provided ID or query for latest)
+    let scores;
+    if (calculatedScoresId) {
+      scores = await base('Calculated_Scores').find(calculatedScoresId);
+    } else {
+      const calculatedScores = await base('Calculated_Scores')
+        .select({
+          filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
+          maxRecords: 1
+        })
+        .firstPage();
+      
+      if (calculatedScores.length === 0) {
+        return {
+          success: false,
+          error: 'No calculated scores found for user'
+        };
+      }
+      
+      scores = calculatedScores[0];
+      calculatedScoresId = scores.id;
+    }
+    
+    // 4. Build the prompt using template
+    const promptText = buildPrompt(user.fields, surveyResponse.fields, scores.fields);
+    
+    // 5. Send to GPT-4-turbo
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert social activity recommendation engine.'
+        },
+        {
+          role: 'user',
+          content: promptText
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 3000
+    });
+    
+    const recommendations = completion.choices[0].message.content;
+    
+    return {
+      success: true,
+      data: {
+        recommendations,
+        promptText,
+        surveyResponseId: surveyResponseId,
+        calculatedScoresId: calculatedScoresId
+      }
+    };
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to generate recommendations'
+    };
+  }
+}
+
+/**
+ * Save prompt and recommendations to GPT_Prompts table
+ * @param {string} userId - Airtable User record ID
+ * @param {string} surveyResponseId - Airtable Survey_Response record ID
+ * @param {string} calculatedScoresId - Airtable Calculated_Scores record ID
+ * @param {string} promptText - The prompt text sent to GPT
+ * @param {string} recommendations - The generated recommendations
+ * @returns {Promise<Object>} {success: boolean, data: {promptId} | error: string}
+ */
+async function savePromptToAirtable(userId, surveyResponseId, calculatedScoresId, promptText, recommendations) {
+  try {
+    if (!userId || !surveyResponseId || !calculatedScoresId || !promptText || !recommendations) {
+      return {
+        success: false,
+        error: 'All parameters are required: userId, surveyResponseId, calculatedScoresId, promptText, recommendations'
+      };
+    }
+
+    const records = await base('GPT_Prompts').create([
+      {
+        fields: {
+          User: [userId],
+          'Survey Response': [surveyResponseId],
+          'Calculated Scores': [calculatedScoresId],
+          Prompt_Text: promptText,
+          Recommendations_Generated: recommendations
+        }
+      }
+    ]);
+
+    const record = records[0];
+    
+    return {
+      success: true,
+      data: {
+        promptId: record.id
+      }
+    };
+  } catch (error) {
+    console.error('Error saving prompt to Airtable:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to save prompt to Airtable'
+    };
+  }
 }
 
 /**
  * Build GPT prompt from user data
+ * @param {Object} userData - User fields from Airtable
+ * @param {Object} surveyData - Survey response fields from Airtable
+ * @param {Object} scoresData - Calculated scores fields from Airtable
+ * @returns {string} The complete prompt text
  */
 function buildPrompt(userData, surveyData, scoresData) {
-  
   // Get interpretations based on scores
   const extraversionInterp = getExtraversionInterpretation(scoresData.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scoresData.Conscientiousness_Category);
@@ -118,11 +179,14 @@ function buildPrompt(userData, surveyData, scoresData) {
   // Build affinity groups section
   const affinityGroups = buildAffinityGroupsSection(surveyData);
   
+  // Get location (placeholder for now - TODO: implement geocoding)
+  const location = getLocation(userData.Zipcode);
+  
   // Build the full prompt
   const prompt = `
 You are an expert social activity recommendation engine for Empower Social, a platform that matches people with events, activities, and communities based on psychology and personality - not just interests.
 
-Your task is to recommend 10 personalized social activities, events, groups, or experiences for this user in ${getLocation(userData.Zipcode)}.
+Your task is to recommend 10 personalized social activities, events, groups, or experiences for this user in ${location}.
 
 ---
 
@@ -131,7 +195,7 @@ Your task is to recommend 10 personalized social activities, events, groups, or 
 **Demographics:**
 - Age: ${userData.Age}
 - Gender: ${userData.Gender}
-- Location: ${userData.Zipcode} (${getLocation(userData.Zipcode)})
+- Location: ${userData.Zipcode} (${location})
 
 **Personality Assessment (Big Five Traits):**
 - Extraversion: ${scoresData.Extraversion_Category} (${scoresData.Extraversion_Raw}/14)
@@ -357,68 +421,7 @@ function getLocation(zipcode) {
   return 'Charlottesville, VA'; // TODO: Implement zipcode lookup
 }
 
-// Export for use in your backend
 module.exports = {
   generateRecommendations,
-  buildPrompt
+  savePromptToAirtable
 };
-```
-
----
-
-## Usage Example
-
-```javascript
-// In your Express route or API endpoint
-app.post('/api/generate-recommendations', async (req, res) => {
-  try {
-    const { userId } = req.body;
-    
-    const recommendations = await generateRecommendations(userId);
-    
-    res.json({
-      success: true,
-      recommendations
-    });
-    
-  } catch (error) {
-    console.error('Error generating recommendations:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-```
-
----
-
-## Environment Variables Required
-
-```bash
-# .env file
-AIRTABLE_API_KEY=your_airtable_api_key_here
-AIRTABLE_BASE_ID=your_base_id_here
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
----
-
-## Testing
-
-```javascript
-// test.js
-const { generateRecommendations } = require('./generateRecommendations');
-
-async function test() {
-  try {
-    const userId = 'recABC123'; // Your test user's Airtable record ID
-    const recommendations = await generateRecommendations(userId);
-    console.log(recommendations);
-  } catch (error) {
-    console.error('Test failed:', error);
-  }
-}
-
-test();
-```
