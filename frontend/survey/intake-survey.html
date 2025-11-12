@@ -497,6 +497,222 @@
             transform: scale(1.02);
         }
 
+        /* Recommendations Card Styles */
+        .recommendations-header {
+            max-width: 1400px;
+            margin: 0 auto 32px;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .recommendations-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            color: #2C2C2C;
+            margin-bottom: 12px;
+        }
+
+        .recommendations-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .event-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            background-color: #f0f0f0;
+        }
+
+        .event-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-type-badge.recurring {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .event-type-badge.one-time {
+            background: #2196F3;
+            color: white;
+        }
+
+        .match-score-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: white;
+            color: #FF8C42;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .event-content {
+            padding: 24px;
+        }
+
+        .event-content h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            color: #2C2C2C;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .event-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .match-reasons {
+            background: #FFF9F0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .match-reasons h4 {
+            font-size: 14px;
+            color: #FF8C42;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .match-reasons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .match-reasons li {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .match-reasons li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .event-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.newcomer {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .badge.small-group {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .badge.free {
+            background: #F3E5F5;
+            color: #6A1B9A;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .event-actions .btn-primary {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .event-actions .btn-secondary {
+            padding: 12px 20px;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .event-actions .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        @media (max-width: 768px) {
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .btn-primary:active {
             transform: scale(0.98);
         }
@@ -692,6 +908,11 @@
                 <div class="form-group">
                     <label for="firstName">First Name <span class="required">*</span></label>
                     <input type="text" id="firstName" name="firstName">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input type="email" id="email" name="email">
                 </div>
 
                 <div class="form-group">
@@ -1072,7 +1293,7 @@
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-faith-specific" value="christian-protestant">
-                                    <label>Christian (Protestant/Evangelical)</label>
+                                    <label>Christian</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-faith-specific" value="catholic">
@@ -1100,11 +1321,15 @@
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-faith-specific" value="spiritual">
-                                    <label>Spiritual but not religious</label>
+                                    <label>Spiritual (non-religious)</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-faith-specific" value="atheist-agnostic">
-                                    <label>Atheist/Agnostic communities</label>
+                                    <label>Atheist/Agnostic</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" name="affinity-faith-specific" value="other-faith">
+                                    <label>Other faith</label>
                                 </div>
                             </div>
                         </div>
@@ -1156,35 +1381,35 @@
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-cultural-specific" value="african-american">
-                                    <label>African American/Black communities</label>
+                                    <label>African American</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-cultural-specific" value="asian-american">
-                                    <label>Asian American communities</label>
+                                    <label>Asian American</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-cultural-specific" value="hispanic-latino">
-                                    <label>Hispanic/Latino/Latinx communities</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-cultural-specific" value="middle-eastern">
-                                    <label>Middle Eastern/North African (MENA)</label>
+                                    <label>Hispanic/Latino</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-cultural-specific" value="native-american">
-                                    <label>Native American/Indigenous communities</label>
+                                    <label>Indigenous/Native American</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-cultural-specific" value="pacific-islander">
-                                    <label>Pacific Islander communities</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-cultural-specific" value="jewish-cultural">
-                                    <label>Jewish cultural communities</label>
+                                    <input type="checkbox" name="affinity-cultural-specific" value="middle-eastern">
+                                    <label>Middle Eastern</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-cultural-specific" value="multiracial">
-                                    <label>Multiracial/Multicultural communities</label>
+                                    <label>Multicultural</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" name="affinity-cultural-specific" value="international-students">
+                                    <label>International students</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" name="affinity-cultural-specific" value="other-cultural">
+                                    <label>Other</label>
                                 </div>
                             </div>
                         </div>
@@ -1199,24 +1424,24 @@
                         <div id="womens-options" class="affinity-options" style="display: none; margin-left: 32px; margin-bottom: 20px;">
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-womens-specific" value="general-womens">
-                                    <label>General women's groups</label>
-                                </div>
-                                <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-womens-specific" value="professional-women">
-                                    <label>Professional women's networks</label>
+                                    <label>Professional women</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-womens-specific" value="women-of-color">
-                                    <label>Women of color groups</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-womens-specific" value="lgbtq-women">
-                                    <label>LGBTQ+ women's spaces</label>
+                                    <input type="checkbox" name="affinity-womens-specific" value="women-entrepreneurs">
+                                    <label>Women entrepreneurs</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-womens-specific" value="moms">
-                                    <label>Moms/mothers groups</label>
+                                    <label>Moms/Parents</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" name="affinity-womens-specific" value="women-40-plus">
+                                    <label>Women 40+</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" name="affinity-womens-specific" value="women-in-stem">
+                                    <label>Women in STEM</label>
                                 </div>
                             </div>
                         </div>
@@ -1231,20 +1456,20 @@
                         <div id="young-prof-options" class="affinity-options" style="display: none; margin-left: 32px; margin-bottom: 20px;">
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-young-prof-specific" value="general-young-prof">
-                                    <label>General young professionals</label>
+                                    <input type="checkbox" name="affinity-young-prof-specific" value="young-prof-20s">
+                                    <label>Young professionals (20s)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-young-prof-specific" value="young-prof-of-color">
-                                    <label>Young professionals of color</label>
+                                    <input type="checkbox" name="affinity-young-prof-specific" value="young-prof-30s">
+                                    <label>Young professionals (30s)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-young-prof-specific" value="lgbtq-young-prof">
-                                    <label>LGBTQ+ young professionals</label>
+                                    <input type="checkbox" name="affinity-young-prof-specific" value="career-changers">
+                                    <label>Career changers</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-young-prof-specific" value="women-in-business">
-                                    <label>Women in business</label>
+                                    <input type="checkbox" name="affinity-young-prof-specific" value="recent-grads">
+                                    <label>Recent grads</label>
                                 </div>
                             </div>
                         </div>
@@ -1259,20 +1484,20 @@
                         <div id="international-options" class="affinity-options" style="display: none; margin-left: 32px; margin-bottom: 20px;">
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-international-specific" value="general-international">
-                                    <label>General international community</label>
+                                    <input type="checkbox" name="affinity-international-specific" value="expats">
+                                    <label>Expats</label>
                                 </div>
                                 <div class="checkbox-item">
                                     <input type="checkbox" name="affinity-international-specific" value="recent-immigrants">
-                                    <label>Recent immigrants/refugees</label>
+                                    <label>Recent immigrants</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-international-specific" value="international-students">
-                                    <label>International students</label>
+                                    <input type="checkbox" name="affinity-international-specific" value="general-international">
+                                    <label>International community</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" name="affinity-international-specific" value="expats">
-                                    <label>Expats living in the US</label>
+                                    <input type="checkbox" name="affinity-international-specific" value="language-learners">
+                                    <label>Language learners</label>
                                 </div>
                             </div>
                         </div>
@@ -1685,104 +1910,592 @@
             }
         }
 
+        // Show loading spinner
+        function showLoadingSpinner() {
+            const spinnerHTML = `
+                <div id="loadingOverlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.95);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(4px);
+                ">
+                    <div style="
+                        width: 60px;
+                        height: 60px;
+                        border: 6px solid #FFE8D6;
+                        border-top: 6px solid #FF8C42;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 20px;
+                    "></div>
+                    <h3 style="
+                        font-family: 'Montserrat', sans-serif;
+                        font-size: 24px;
+                        color: #2C2C2C;
+                        margin-bottom: 8px;
+                    ">Generating Your Recommendations</h3>
+                    <p style="
+                        color: #666;
+                        font-size: 16px;
+                        text-align: center;
+                        max-width: 400px;
+                    ">This usually takes 30-60 seconds. We're analyzing your personality and finding the perfect activities for you!</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+        }
+
+        // Hide loading spinner
+        function hideLoadingSpinner() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
         // Form submission handler
-        document.getElementById('intakeForm').addEventListener('submit', function(e) {
+        document.getElementById('intakeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Collect checkbox values
-            const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
-                .map(checkbox => checkbox.value);
-
-            // Collect interest categories and specific interests
-            const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
-                .map(checkbox => checkbox.value);
-            const selectedInterests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
-                .map(checkbox => checkbox.value);
-
-            // Collect affinity data
-            const affinityData = collectAffinityData();
-
-            // Get personality raw scores
-            const q1 = parseInt(document.getElementById('q1')?.value) || 0;
-            const q3 = parseInt(document.getElementById('q3')?.value) || 0;
-            const q5 = parseInt(document.getElementById('q5')?.value) || 0;
-            const q6 = parseInt(document.getElementById('q6')?.value) || 0;
-            const q8 = parseInt(document.getElementById('q8')?.value) || 0;
-            const q10 = parseInt(document.getElementById('q10')?.value) || 0;
-
-            // Reverse score items 6, 8, 10 (reverse: 8 - original score)
-            const q6R = q6 ? (8 - q6) : 0;
-            const q8R = q8 ? (8 - q8) : 0;
-            const q10R = q10 ? (8 - q10) : 0;
-
-            // Calculate personality dimensions
-            const extraversion = q1 + q6R;  // 1 + 6R
-            const conscientiousness = q3 + q8R;  // 3 + 8R
-            const openness = q5 + q10R;  // 5 + 10R
-
-            const formData = {
-                firstName: document.getElementById('firstName').value,
-                age: parseInt(document.getElementById('age').value) || 0,
-                gender: document.getElementById('gender').value,
-                zipcode: document.getElementById('zipcode').value,
-                
-                // Personality scores (already calculated above)
-                extraversion: extraversion,
-                conscientiousness: conscientiousness,
-                openness: openness,
-                
-                // Social connection data
-                closeFriends: parseInt(document.getElementById('closeFriends').value) || 0,
-                loneliness: parseInt(document.getElementById('loneliness')?.value) || 3,
-                socialSatisfaction: parseInt(document.getElementById('socialSatisfaction')?.value) || 4,
-                
-                // Motivation scores (calculate from raw values)
-                intrinsicMotivation: (parseInt(document.getElementById('m1')?.value) || 0) + (parseInt(document.getElementById('m4')?.value) || 0),
-                socialMotivation: (parseInt(document.getElementById('m2')?.value) || 0) + (parseInt(document.getElementById('m5')?.value) || 0),
-                achievementMotivation: (parseInt(document.getElementById('m3')?.value) || 0) + (parseInt(document.getElementById('m6')?.value) || 0),
-                
-                // Interests
-                interestCategories: selectedCategories,
-                specificInterests: selectedInterests,
-                
-                // Activity preferences
-                freeTime: document.getElementById('freeTime').value,
-                travelDistance: document.getElementById('travelDistance').value,
-                activityPreferences: preferences,
-                
-                // Affinity groups
-                affinityGroups: affinityData,
-                
-                // Timestamp
-                submittedAt: new Date().toISOString()
-            };
+            // Get submit button and disable it
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
             
-            console.log('=== FORM SUBMISSION ===');
-            console.log('User Profile Data:', formData);
+            // Show loading spinner
+            showLoadingSpinner();
             
-            // STEP 2: Generate the personalized GPT prompt
-            console.log('\n=== GENERATING GPT PROMPT ===');
-            const gptPromptData = generatePersonalizedGPTPrompt(formData);
-            
-            console.log('GPT Prompt Metadata:', gptPromptData.metadata);
-            console.log('\nFull GPT Prompt:');
-            console.log(gptPromptData.prompt);
-            
-            // Show success message with next steps
-            alert(`Form submitted successfully!
+            try {
+                // Collect checkbox values
+                const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
+                    .map(checkbox => checkbox.value);
 
-Your personalized profile has been created:
-- Personality: ${gptPromptData.metadata.personalityProfile.extraversion}
-- Social Need Score: ${gptPromptData.metadata.socialNeedScore}/50
-- Dominant Motivation: ${gptPromptData.metadata.dominantMotivation}
+                // Collect interest categories and specific interests
+                const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
+                    .map(checkbox => checkbox.value);
+                const selectedInterests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
+                    .map(checkbox => checkbox.value);
 
-Check the console (F12) to see your full GPT prompt!
+                // Collect affinity data
+                const affinityData = collectAffinityData();
 
-NEXT STEPS (to be implemented):
-1. Save your profile to database
-2. Send prompt to Custom GPT
-3. Display your personalized event recommendations`);
+                // Get personality raw scores (1-7 scale)
+                const q1 = parseInt(document.getElementById('q1')?.value) || 1;
+                const q3 = parseInt(document.getElementById('q3')?.value) || 1;
+                const q5 = parseInt(document.getElementById('q5')?.value) || 1;
+                const q6 = parseInt(document.getElementById('q6')?.value) || 1;
+                const q8 = parseInt(document.getElementById('q8')?.value) || 1;
+                const q10 = parseInt(document.getElementById('q10')?.value) || 1;
+
+                // Get motivation raw scores (1-5 scale)
+                const m1 = parseInt(document.getElementById('m1')?.value) || 1;
+                const m2 = parseInt(document.getElementById('m2')?.value) || 1;
+                const m3 = parseInt(document.getElementById('m3')?.value) || 1;
+                const m4 = parseInt(document.getElementById('m4')?.value) || 1;
+                const m5 = parseInt(document.getElementById('m5')?.value) || 1;
+                const m6 = parseInt(document.getElementById('m6')?.value) || 1;
+
+                // Get social data
+                const closeFriends = document.getElementById('closeFriends').value;
+                const lonelinessValue = parseInt(document.getElementById('loneliness')?.value) || 3;
+                const lonelinessLabels = {
+                    '1': 'Never (1)',
+                    '2': 'Rarely (2)',
+                    '3': 'Sometimes (3)',
+                    '4': 'Often (4)',
+                    '5': 'Very Often (5)'
+                };
+                const loneliness = lonelinessLabels[lonelinessValue.toString()] || 'Sometimes (3)';
+                
+                const socialSatisfactionValue = parseInt(document.getElementById('socialSatisfaction')?.value) || 4;
+                const socialSatisfaction = `Neutral (${socialSatisfactionValue})`;
+
+                // Map free time values to match backend expectations
+                const freeTimeMap = {
+                    '<5': 'Less than 5 hours',
+                    '5-10': '5-10 hours',
+                    '10-20': '10-20 hours',
+                    '>20': 'More than 20 hours'
+                };
+                const freeTime = freeTimeMap[document.getElementById('freeTime').value] || document.getElementById('freeTime').value;
+
+                // Map travel distance values
+                const travelDistanceMap = {
+                    '<1': 'Less than 1 mile',
+                    '1-5': '1-5 miles',
+                    '5-15': '5-15 miles',
+                    '15+': '15+ miles'
+                };
+                const travelDistance = travelDistanceMap[document.getElementById('travelDistance').value] || document.getElementById('travelDistance').value;
+
+                // Format data for backend API
+                const surveyData = {
+                    name: document.getElementById('firstName').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    age: parseInt(document.getElementById('age').value),
+                    gender: document.getElementById('gender').value,
+                    zipcode: document.getElementById('zipcode').value.trim(),
+                    
+                    personality: {
+                        q1: q1,
+                        q6: q6,
+                        q3: q3,
+                        q8: q8,
+                        q5: q5,
+                        q10: q10
+                    },
+                    
+                    motivation: {
+                        m1: m1,
+                        m2: m2,
+                        m3: m3,
+                        m4: m4,
+                        m5: m5,
+                        m6: m6
+                    },
+                    
+                    social: {
+                        closeFriends: closeFriends,
+                        satisfaction: socialSatisfaction,
+                        loneliness: loneliness,
+                        lookingFor: [] // TODO: Add "looking for" field to form if needed
+                    },
+                    
+                    interests: {
+                        categories: selectedCategories,
+                        specific: selectedInterests.join(', ')
+                    },
+                    
+                    preferences: {
+                        freeTime: freeTime,
+                        travelDistance: travelDistance,
+                        indoor: preferences.includes('indoor'),
+                        outdoor: preferences.includes('outdoor'),
+                        physical: preferences.includes('physical'),
+                        relaxed: preferences.includes('relaxed'),
+                        structured: preferences.includes('structured'),
+                        spontaneous: preferences.includes('spontaneous')
+                    },
+                    
+                    affinityGroups: {
+                        faith: affinityData.faithBased?.selected ? affinityData.faithBased.specific : [],
+                        lgbtq: affinityData.lgbtq?.selected ? affinityData.lgbtq.specific : [],
+                        cultural: affinityData.cultural?.selected ? affinityData.cultural.specific : [],
+                        womens: affinityData.womens?.selected ? affinityData.womens.specific : [],
+                        youngProf: affinityData.youngProfessionals?.selected ? affinityData.youngProfessionals.specific : [],
+                        international: affinityData.international?.selected ? affinityData.international.specific : []
+                    }
+                };
+                
+                console.log('Submitting survey data:', surveyData);
+                
+                // Store survey data for retry functionality
+                lastSurveyData = surveyData;
+                
+                // Submit to backend API
+                const API_BASE_URL = 'http://localhost:3000';
+                
+                const response = await fetch(`${API_BASE_URL}/api/submit-survey`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(surveyData)
+                });
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+                    throw new Error(errorData.error || `Server error: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Hide loading spinner
+                    hideLoadingSpinner();
+                    
+                    // Show recommendations
+                    console.log('Recommendations:', result.recommendations);
+                    
+                    // Display recommendations
+                    displayRecommendations(result.recommendations, result.userId);
+                } else {
+                    throw new Error(result.error || 'Failed to submit survey');
+                }
+                
+            } catch (error) {
+                console.error('Error submitting survey:', error);
+                
+                // Hide loading spinner
+                hideLoadingSpinner();
+                
+                // Show user-friendly error message
+                let errorMessage = 'We encountered an error processing your survey. ';
+                
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage += 'Please check your internet connection and make sure the server is running.';
+                } else if (error.message.includes('400')) {
+                    errorMessage += 'Please check that all required fields are filled out correctly.';
+                } else if (error.message.includes('500')) {
+                    errorMessage += 'Our servers are experiencing issues. Please try again in a few moments.';
+                } else {
+                    errorMessage += error.message || 'Please try again or contact support if the problem persists.';
+                }
+                
+                alert(errorMessage);
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            }
         });
+
+        // Simplified parser - extracts only essential fields
+        function parseRecommendations(text) {
+            const recommendations = [];
+            
+            console.log('Parsing recommendations, text length:', text.length);
+            console.log('First 500 chars:', text.substring(0, 500));
+            
+            // Split by "### Recommendation" headers (new format) or numbered items
+            let sections = text.split(/(?=### Recommendation \d+:)/i);
+            if (sections.length < 2) {
+                // Try old format with numbered items
+                sections = text.split(/(?=^\d+\.\s)/m);
+            }
+            if (sections.length < 2) {
+                sections = text.split(/\n(?=\d+\.\s+)/);
+            }
+            if (sections.length < 2) {
+                sections = text.split(/\n(?=\d+\.)/);
+            }
+            if (sections.length < 2) {
+                sections = text.split(/\n\n(?=\d+\.)/);
+            }
+            
+            console.log(`Split into ${sections.length} sections`);
+            
+            sections.forEach((section, idx) => {
+                if (!section.trim()) return;
+                
+                const rec = {
+                    name: '',
+                    url: '',
+                    whyMatches: '',
+                    date: '',
+                    time: '',
+                    location: '',
+                    isRecurring: false
+                };
+                
+                // Extract name - try multiple patterns (handle **1. Name** format)
+                // Handle "### Recommendation N: Name" format first
+                let nameMatch = section.match(/### Recommendation \d+:\s*(.+?)(?:\n|$)/i);
+                if (!nameMatch) {
+                    // Try "1. **Event/Activity Name:** Name" format
+                    nameMatch = section.match(/\d+\.\s*\*\*Event\/Activity Name:\*\*\s*(.+?)(?:\n|$)/i);
+                }
+                if (!nameMatch) {
+                    nameMatch = section.match(/^\d+\.\s*\*\*(.+?)\*\*/m);
+                }
+                if (!nameMatch) {
+                    nameMatch = section.match(/^\d+\.\s+Event\/Activity Name[:\-]\s*(.+?)(?:\n|$)/i);
+                }
+                if (!nameMatch) {
+                    nameMatch = section.match(/^\d+\.\s+(.+?)(?:\n|$)/m);
+                }
+                if (!nameMatch) {
+                    // Try to get first non-empty line after number
+                    const lines = section.split('\n').filter(l => l.trim());
+                    if (lines.length > 0) {
+                        const firstLine = lines[0].replace(/^\d+\.\s*/, '').trim();
+                        if (firstLine && !firstLine.match(/^(Type|Why|Logistics|What|How|URL)/i)) {
+                            rec.name = firstLine.replace(/\*\*/g, '').trim();
+                        }
+                    }
+                } else {
+                    rec.name = (nameMatch[1] || nameMatch[2] || '').trim().replace(/\*\*/g, '');
+                }
+                
+                // Extract recurring status from Type field - handle "2. **Type:** Recurring [Category]" format
+                const typeMatch = section.match(/\d+\.\s*\*\*Type:\*\*\s*([^\n]+)/i) ||
+                                 section.match(/-?\s*\*\*Type:\*\*\s*([^\n]+)/i) || 
+                                 section.match(/Type[:\-]\s*\[?([^\]]+)\]?/i) || 
+                                 section.match(/Type[:\-]\s*([^\n]+)/i);
+                if (typeMatch) {
+                    const typeText = typeMatch[1].toLowerCase();
+                    rec.isRecurring = typeText.includes('recurring');
+                }
+                
+                // Extract Why It Matches - handle "3. **Why It Matches:** ..." format
+                const whyMatch = section.match(/\d+\.\s*\*\*Why It Matches:\*\*\s*(.+?)(?=\n\s*\d+\.\s*\*\*(?:Logistics|What|How|URL)|$)/is) ||
+                                section.match(/-?\s*\*\*Why It Matches:\*\*\s*(.+?)(?=\n\s*-?\s*\*\*(?:Logistics|What|How|URL)|$)/is) ||
+                                section.match(/Why It Matches[:\-]\s*(.+?)(?=\n\s*(Logistics|What to Expect|How to Join|URL|$|\d+\.))/is);
+                if (whyMatch) {
+                    rec.whyMatches = whyMatch[1].trim().replace(/\*\*/g, '');
+                }
+                
+                // Extract Logistics for date, time, location - handle "4. **Logistics:** ..." format
+                const logisticsMatch = section.match(/\d+\.\s*\*\*Logistics:\*\*\s*(.+?)(?=\n\s*\d+\.\s*\*\*(?:What|How|URL)|$)/is) ||
+                                      section.match(/-?\s*\*\*Logistics:\*\*\s*(.+?)(?=\n\s*-?\s*\*\*(?:What|How|URL)|$)/is) ||
+                                      section.match(/Logistics[:\-]\s*(.+?)(?=\n\s*(What to Expect|How to Join|URL|$|\d+\.))/is);
+                if (logisticsMatch) {
+                    const logistics = logisticsMatch[1].trim();
+                    
+                    // Extract time
+                    const timeMatch = logistics.match(/(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))/i);
+                    if (timeMatch) {
+                        rec.time = timeMatch[1].trim();
+                    }
+                    
+                    // Extract day/date patterns
+                    const dayMatch = logistics.match(/(every\s+[A-Za-z]+day|weekly|monthly|bi-weekly|first\s+[A-Za-z]+day|third\s+[A-Za-z]+day|next\s+[A-Za-z]+day|[A-Za-z]+day[s]?)/i);
+                    if (dayMatch) {
+                        rec.date = dayMatch[1].trim();
+                    } else {
+                        // Try date format
+                        const dateMatch = logistics.match(/(\d{1,2}\/\d{1,2}\/\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4}|next\s+[A-Za-z]+day|upcoming\s+weekend)/i);
+                        if (dateMatch) {
+                            rec.date = dateMatch[1].trim();
+                        }
+                    }
+                    
+                    // Extract location - look for "at [Location]" or "in [Location]" or after comma
+                    const locationMatch = logistics.match(/(?:at|in)\s+([^,\.]+?)(?:\.|,|$)/i) ||
+                                         logistics.match(/,\s*([^\.]+?)(?:\.|$)/);
+                    if (locationMatch) {
+                        rec.location = locationMatch[1].trim();
+                    }
+                }
+                
+                // Extract URL - handle "7. **URL:** [text](url)" markdown format
+                let urlMatch = section.match(/\d+\.\s*\*\*URL:\*\*\s*\[[^\]]+\]\(([^\)]+)\)/i) ||
+                              section.match(/-?\s*\*\*URL:\*\*\s*\[[^\]]+\]\(([^\)]+)\)/i) ||
+                              section.match(/-?\s*\*\*URL:\*\*\s*(https?:\/\/[^\s\n]+)/i) ||
+                              section.match(/URL[:\-]\s*(https?:\/\/[^\s\n]+)/i);
+                if (!urlMatch) {
+                    // Try "How to Join" field for URLs - handle "6. **How to Join:** ..." format
+                    const howToJoinMatch = section.match(/\d+\.\s*\*\*How to Join:\*\*\s*(.+?)(?=\n\s*\d+\.|$)/is) ||
+                                          section.match(/-?\s*\*\*How to Join:\*\*\s*(.+?)(?=\n|$)/is) ||
+                                          section.match(/-?\s*How to Join[:\-]\s*(.+?)(?=\n|$)/is);
+                    if (howToJoinMatch) {
+                        const howToJoin = howToJoinMatch[1].trim();
+                        // Look for markdown links first
+                        const markdownLink = howToJoin.match(/\[([^\]]+)\]\(([^\)]+)\)/);
+                        if (markdownLink) {
+                            rec.url = markdownLink[2].trim();
+                        } else {
+                            // Look for URLs in the text
+                            const urlInText = howToJoin.match(/(https?:\/\/[^\s\n]+)/i) ||
+                                            howToJoin.match(/(www\.[^\s\n]+)/i) ||
+                                            howToJoin.match(/([a-zA-Z0-9-]+\.(com|org|net|io|co)[^\s\n]*)/i);
+                            if (urlInText) {
+                                let url = urlInText[1].trim();
+                                if (!url.startsWith('http')) {
+                                    url = 'https://' + url;
+                                }
+                                rec.url = url;
+                            }
+                        }
+                    } else {
+                        // Fallback: search entire section for markdown links or URLs
+                        const markdownLink = section.match(/\[([^\]]+)\]\(([^\)]+)\)/);
+                        if (markdownLink) {
+                            rec.url = markdownLink[2].trim();
+                        } else {
+                            urlMatch = section.match(/(https?:\/\/[^\s\n]+)/i);
+                            if (urlMatch) {
+                                rec.url = urlMatch[1].trim();
+                            }
+                        }
+                    }
+                } else {
+                    rec.url = urlMatch[1].trim();
+                }
+                
+                // Only add if we have at least a name
+                if (rec.name && rec.name.length > 0 && rec.name.length < 200 && !rec.name.match(/^(Event\/Activity Name|Type|Name|Logistics|What|How|URL):/i)) {
+                    console.log(`Parsed recommendation ${idx + 1}:`, {
+                        name: rec.name.substring(0, 50),
+                        hasUrl: !!rec.url,
+                        hasWhy: !!rec.whyMatches,
+                        isRecurring: rec.isRecurring
+                    });
+                    recommendations.push(rec);
+                }
+            });
+            
+            console.log(`Total parsed: ${recommendations.length} recommendations`);
+            return recommendations;
+        }
+        
+        // Store survey data for retry functionality
+        let lastSurveyData = null;
+        
+        // Simplified display function - shows simple list format
+        function displayRecommendations(recommendations, userId) {
+            // Hide the survey form
+            document.querySelector('.survey-container').style.display = 'none';
+            
+            // Parse recommendations
+            const parsedRecs = parseRecommendations(recommendations);
+            
+            // If parsing failed, show raw text with a message
+            if (parsedRecs.length === 0) {
+                console.error('Failed to parse recommendations, showing raw text');
+                const recommendationsHTML = `
+                    <div class="recommendations-header">
+                        <h2>Your Personalized Recommendations</h2>
+                        <p style="color: #666; margin-bottom: 16px;">We encountered an issue parsing the recommendations. Showing raw output:</p>
+                    </div>
+                    <div style="max-width: 1400px; margin: 0 auto; background: white; padding: 32px; border-radius: 16px; white-space: pre-wrap; font-family: monospace; font-size: 14px; max-height: 600px; overflow-y: auto;">
+                        ${escapeHtml(recommendations.substring(0, 5000))}
+                    </div>
+                    <div style="max-width: 1400px; margin: 40px auto; text-align: center;">
+                        <button type="button" class="btn-primary" onclick="window.location.reload()" style="padding: 14px 32px; font-size: 16px; margin-right: 12px;">Take Survey Again</button>
+                        ${lastSurveyData ? `<button type="button" class="btn-secondary" onclick="retryRecommendations()" style="padding: 14px 32px; font-size: 16px;">Get New Recommendations</button>` : ''}
+                    </div>
+                `;
+                document.querySelector('.header').insertAdjacentHTML('afterend', recommendationsHTML);
+                return;
+            }
+            
+            // Generate simple list HTML
+            const listItems = parsedRecs.map((rec, index) => {
+                const nameDisplay = rec.url 
+                    ? `<a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #FF8C42; text-decoration: none; font-weight: 600;">${escapeHtml(rec.name)}</a>`
+                    : `<strong>${escapeHtml(rec.name)}</strong>`;
+                
+                const dateTimeLocation = [
+                    rec.date ? `📅 ${escapeHtml(rec.date)}` : '',
+                    rec.time ? `🕐 ${escapeHtml(rec.time)}` : '',
+                    rec.location ? `📍 ${escapeHtml(rec.location)}` : ''
+                ].filter(Boolean).join(' • ') || '';
+                
+                const recurringBadge = rec.isRecurring 
+                    ? '<span style="display: inline-block; background: #4CAF50; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">Recurring</span>'
+                    : '<span style="display: inline-block; background: #2196F3; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">One-Time</span>';
+                
+                return `
+                    <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 12px;">
+                            <h3 style="font-family: 'Montserrat', sans-serif; font-size: 20px; color: #2C2C2C; margin: 0 0 8px 0; font-weight: 600;">
+                                ${index + 1}. ${nameDisplay} ${recurringBadge}
+                            </h3>
+                            ${dateTimeLocation ? `<div style="color: #666; font-size: 14px; margin-bottom: 12px;">${dateTimeLocation}</div>` : ''}
+                            ${rec.url ? `<div style="margin-bottom: 12px;"><a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline; font-size: 14px;">${rec.url}</a></div>` : ''}
+                        </div>
+                        ${rec.whyMatches ? `
+                        <div style="background: #FFF9F0; padding: 16px; border-radius: 8px; border-left: 3px solid #FF8C42;">
+                            <div style="font-size: 14px; color: #FF8C42; font-weight: 600; margin-bottom: 8px;">Why this matches you:</div>
+                            <div style="font-size: 14px; color: #555; line-height: 1.6;">${escapeHtml(rec.whyMatches)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            // Create recommendations display
+            const recommendationsHTML = `
+                <div class="recommendations-header">
+                    <h2>Your Personalized Recommendations</h2>
+                    <p style="color: #666; margin-bottom: 16px;">Based on your profile, we found ${parsedRecs.length} perfect matches for you</p>
+                </div>
+                
+                <div style="max-width: 900px; margin: 0 auto;">
+                    ${listItems}
+                </div>
+                
+                <div style="max-width: 900px; margin: 40px auto; text-align: center;">
+                    <button type="button" class="btn-primary" onclick="window.location.reload()" style="padding: 14px 32px; font-size: 16px; margin-right: 12px;">Take Survey Again</button>
+                    ${lastSurveyData ? `<button type="button" class="btn-secondary" onclick="retryRecommendations()" style="padding: 14px 32px; font-size: 16px;">Get New Recommendations</button>` : ''}
+                </div>
+            `;
+            
+            document.querySelector('.header').insertAdjacentHTML('afterend', recommendationsHTML);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Function to retry recommendations with same survey data
+        async function retryRecommendations() {
+            if (!lastSurveyData) {
+                alert('No previous survey data found. Please take the survey again.');
+                return;
+            }
+            
+            // Show loading spinner
+            showLoadingSpinner();
+            
+            // Remove existing recommendations display
+            const header = document.querySelector('.recommendations-header');
+            if (header) {
+                // Remove everything from header to the buttons at the end
+                let current = header;
+                while (current && current.nextSibling) {
+                    const next = current.nextSibling;
+                    if (next.nodeType === 1) { // Element node
+                        if (next.tagName === 'DIV' && (next.textContent.includes('Take Survey Again') || next.textContent.includes('Get New Recommendations'))) {
+                            next.remove();
+                            break;
+                        }
+                        next.remove();
+                    } else {
+                        current = current.nextSibling;
+                    }
+                }
+                header.remove();
+            }
+            
+            try {
+                const API_BASE_URL = 'http://localhost:3000';
+                
+                const response = await fetch(`${API_BASE_URL}/api/submit-survey`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(lastSurveyData)
+                });
+
+                const result = await response.json();
+
+                hideLoadingSpinner();
+
+                if (result.success) {
+                    // Display new recommendations
+                    displayRecommendations(result.recommendations, result.userId);
+                } else {
+                    alert(`We encountered an error: ${result.error}`);
+                }
+            } catch (error) {
+                hideLoadingSpinner();
+                alert(`We encountered an error: ${error.message}`);
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // Zip code validation
         document.getElementById('zipcode').addEventListener('input', function(e) {

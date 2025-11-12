@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const { base } = require('./airtable');
+const { fetchRealEvents, geocodeZipcode } = require('./events');
 
 // Initialize OpenAI
 if (!process.env.OPENAI_API_KEY) {
@@ -13,9 +14,13 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  * @param {string} userId - Airtable User record ID
  * @param {string} [surveyResponseId] - Optional: Airtable Survey_Response record ID (if not provided, will query)
  * @param {string} [calculatedScoresId] - Optional: Airtable Calculated_Scores record ID (if not provided, will query)
+ * @param {number} [numRecommendations] - Optional: Number of recommendations to generate (default: 5, or from env RECOMMENDATIONS_COUNT)
  * @returns {Promise<Object>} {success: boolean, data: {recommendations, promptText, surveyResponseId, calculatedScoresId} | error: string}
  */
-async function generateRecommendations(userId, surveyResponseId = null, calculatedScoresId = null) {
+async function generateRecommendations(userId, surveyResponseId = null, calculatedScoresId = null, numRecommendations = null) {
+  // Get number of recommendations from parameter, env var, or default to 5
+  const recommendationsCount = numRecommendations || parseInt(process.env.RECOMMENDATIONS_COUNT) || 5;
+  console.log(`Generating ${recommendationsCount} recommendations (max_tokens: ${Math.max(1000, recommendationsCount * 300 + 500)})`);
   try {
     if (!userId) {
       return {
@@ -73,10 +78,56 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       calculatedScoresId = scores.id;
     }
     
-    // 4. Build the prompt using template
-    const promptText = buildPrompt(user.fields, surveyResponse.fields, scores.fields);
+    // 4. Fetch real events from APIs (with timeout to prevent long waits)
+    console.log('Fetching real events...');
+    const userProfile = {
+      zipcode: user.fields.Zipcode,
+      interests: {
+        categories: surveyResponse.fields.Interest_Categories || [],
+        specific: surveyResponse.fields.Specific_Interests || ''
+      },
+      preferences: {
+        travelDistance: surveyResponse.fields.Travel_Distance_Willing || '15+ miles',
+        freeTime: surveyResponse.fields.Free_Time_Per_Week || '10-20 hours'
+      },
+      affinityGroups: {
+        lgbtq: surveyResponse.fields.Affinity_LGBTQ || [],
+        faith: surveyResponse.fields.Affinity_Faith_Based || [],
+        cultural: surveyResponse.fields.Affinity_Cultural_Ethnic || [],
+        womens: surveyResponse.fields.Affinity_Womens || [],
+        youngProf: surveyResponse.fields.Affinity_Young_Prof || [],
+        international: surveyResponse.fields.Affinity_International || []
+      }
+    };
     
-    // 5. Send to GPT-4-turbo
+    // Fetch events with 15-second timeout to prevent long waits
+    let realEvents = [];
+    try {
+      const fetchPromise = fetchRealEvents(userProfile);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Event fetching timeout after 15 seconds')), 15000)
+      );
+      realEvents = await Promise.race([fetchPromise, timeoutPromise]);
+      console.log(`Fetched ${realEvents.length} real events`);
+    } catch (error) {
+      console.warn('Event fetching timed out or failed, continuing without events:', error.message);
+      realEvents = []; // Continue without events
+    }
+    
+    if (realEvents.length > 0) {
+      console.log('Sample events:', realEvents.slice(0, 3).map(e => ({ name: e.name, source: e.source, url: e.url })));
+    } else {
+      console.warn('⚠️  No real events found! Check API keys and event fetching logic.');
+    }
+    
+    // 5. Build the prompt using template (now with real events)
+    const promptText = await buildPrompt(user.fields, surveyResponse.fields, scores.fields, realEvents, recommendationsCount);
+    
+    // 6. Calculate max_tokens based on number of recommendations
+    // Each recommendation is ~250-300 tokens, so: count * 300 + buffer
+    const maxTokens = Math.max(1000, recommendationsCount * 300 + 500);
+    
+    // 6. Send to GPT-4-turbo
     const completion = await openai.chat.completions.create({
       model: 'gpt-4-turbo',
       messages: [
@@ -90,7 +141,7 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
         }
       ],
       temperature: 0.7,
-      max_tokens: 3000
+      max_tokens: maxTokens
     });
     
     const recommendations = completion.choices[0].message.content;
@@ -165,9 +216,11 @@ async function savePromptToAirtable(userId, surveyResponseId, calculatedScoresId
  * @param {Object} userData - User fields from Airtable
  * @param {Object} surveyData - Survey response fields from Airtable
  * @param {Object} scoresData - Calculated scores fields from Airtable
+ * @param {Array} realEvents - Array of real events from APIs
+ * @param {number} recommendationsCount - Number of recommendations to generate
  * @returns {string} The complete prompt text
  */
-function buildPrompt(userData, surveyData, scoresData) {
+async function buildPrompt(userData, surveyData, scoresData, realEvents = [], recommendationsCount = 10) {
   // Get interpretations based on scores
   const extraversionInterp = getExtraversionInterpretation(scoresData.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scoresData.Conscientiousness_Category);
@@ -179,14 +232,16 @@ function buildPrompt(userData, surveyData, scoresData) {
   // Build affinity groups section
   const affinityGroups = buildAffinityGroupsSection(surveyData);
   
-  // Get location (placeholder for now - TODO: implement geocoding)
-  const location = getLocation(userData.Zipcode);
+  // Get location from zipcode using geocoding
+  const location = await getLocation(userData.Zipcode);
   
   // Build the full prompt
   const prompt = `
 You are an expert social activity recommendation engine for Empower Social, a platform that matches people with events, activities, and communities based on psychology and personality - not just interests.
 
-Your task is to recommend 10 personalized social activities, events, groups, or experiences for this user in ${location}.
+Your task is to recommend ${recommendationsCount} personalized social activities, events, groups, or experiences for this user in ${location}.
+
+**CRITICAL TIME CONSTRAINT:** Only recommend events that occur within the next 14 days from today (${new Date().toLocaleDateString()}). Do NOT recommend events more than 14 days away.
 
 ---
 
@@ -301,6 +356,11 @@ ${affinityGroups}
 
 ### 5. Practical Constraints
 
+**Time Window (CRITICAL):**
+- **ONLY recommend events occurring within the next 14 days** from today (${new Date().toLocaleDateString()})
+- Events must have a start date between today and 14 days from now
+- Do NOT recommend events scheduled more than 14 days in the future
+
 **Time Commitment:**
 - Match recommendations to available free time: ${surveyData.Free_Time_Per_Week}
 
@@ -315,6 +375,8 @@ ${affinityGroups}
 **Event Type Balance:**
 - 50% recurring activities (weekly clubs, ongoing classes, regular meetups)
 - 50% one-time events (workshops, concerts, festivals, special occasions)
+
+**Note:** You are generating ${recommendationsCount} recommendations total. Round the split (e.g., for ${recommendationsCount} recommendations: ${Math.floor(recommendationsCount/2)} recurring, ${Math.ceil(recommendationsCount/2)} one-time).
 
 **Diversity Requirements:**
 - At least 3 different activity categories
@@ -332,13 +394,35 @@ For each recommendation, provide:
 3. **Why It Matches:** Specific personality, motivation, or interest alignment
 4. **Logistics:** Day/time, location, cost
 5. **What to Expect:** Group size, atmosphere, commitment
-6. **How to Join:** Contact info or website
+6. **How to Join:** MUST include a clickable URL (website link). If no URL is available from the event source, provide the best available link (e.g., organization website, event platform homepage).
+7. **URL:** [REQUIRED] Direct link to event page, registration, or organization website
 
 ---
 
-## YOUR RECOMMENDATIONS:
+## REAL EVENTS AVAILABLE:
 
-Please provide 10 personalized recommendations following all guidelines above.
+${realEvents.length > 0 ? formatRealEventsForPrompt(realEvents) : 'No real events found. Please provide conceptual recommendations based on the user profile, but clearly indicate these are suggestions for the user to search for themselves.'}
+
+---
+
+## YOUR TASK:
+
+${realEvents.length > 0 
+  ? `CRITICAL: You MUST select and recommend events ONLY from the REAL EVENTS list above. Do NOT create fictional events. 
+
+Requirements:
+- Use ONLY events from the REAL EVENTS list (all events in the list are already filtered to within 14 days)
+- Include the actual event name, date, time, location, and URL from the list
+- If there are fewer than ${recommendationsCount} events in the list, recommend only the events that exist
+- Format each recommendation with: Event Name (from list), Date/Time (from list), Location (from list), URL (from list), Why It Matches
+- **MANDATORY: Every recommendation MUST include a "URL:" field with the actual URL from the event list**
+- **MANDATORY: Verify the event date is within 14 days - all events in the list should already meet this criteria**
+- Do NOT make up event names, dates, locations, or URLs`
+  : `Since no real events were found, provide ${recommendationsCount} conceptual recommendations based on the user profile. For each recommendation, include a "URL:" field with a search link or relevant website where the user can find similar events. Clearly indicate these are suggestions for the user to search for, and provide guidance on where to find similar events.`}
+
+Please provide ${recommendationsCount} personalized recommendations following all guidelines above.
+
+**CRITICAL REQUIREMENT:** Every single recommendation MUST include a "URL:" field with a clickable link. If using real events, use the URL from the event list. If providing conceptual recommendations, include a search URL or relevant website link.
 `;
 
   return prompt.trim();
@@ -415,10 +499,51 @@ function buildAffinityGroupsSection(surveyData) {
   return `**Community Connections (Affinity Groups):**\n${affinityGroups.join('\n')}`;
 }
 
-function getLocation(zipcode) {
-  // In production, use a geocoding API (Google Maps, Mapbox, etc.)
-  // For now, return placeholder
-  return 'Charlottesville, VA'; // TODO: Implement zipcode lookup
+async function getLocation(zipcode) {
+  try {
+    if (!zipcode) {
+      return 'your area';
+    }
+    
+    // Use geocoding to get city and state from zipcode
+    const locationData = await geocodeZipcode(zipcode);
+    
+    if (locationData && locationData.city && locationData.state) {
+      return `${locationData.city}, ${locationData.state}`;
+    } else if (locationData && locationData.city) {
+      return locationData.city;
+    } else {
+      // Fallback to zipcode if geocoding fails
+      return `zipcode ${zipcode}`;
+    }
+  } catch (error) {
+    console.warn('Geocoding failed, using zipcode as fallback:', error.message);
+    return `zipcode ${zipcode}`;
+  }
+}
+
+/**
+ * Format real events for GPT prompt
+ * @param {Array} events - Array of real event objects
+ * @returns {string} Formatted string of events for prompt
+ */
+function formatRealEventsForPrompt(events) {
+  if (events.length === 0) {
+    return 'No real events available.';
+  }
+
+  return events.map((event, index) => {
+    return `
+${index + 1}. **${event.name}**
+   - Source: ${event.source}
+   - Date/Time: ${event.startTime ? new Date(event.startTime).toLocaleString() : 'TBD'}
+   - Location: ${event.venue}, ${event.address}
+   - Cost: ${event.cost}
+   - Category: ${event.category || 'General'}
+   - Description: ${event.description ? event.description.substring(0, 200) + '...' : 'No description'}
+   - URL: ${event.url}
+   - Event ID: ${event.id}`;
+  }).join('\n');
 }
 
 module.exports = {
