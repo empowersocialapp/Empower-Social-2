@@ -233,29 +233,45 @@ async function createSurveyResponse(surveyData, userId) {
       closeFriendsCount = undefined;
     }
 
-    // Map Social_Satisfaction - keep the full formatted string
-    // If Airtable field is a select, it needs to match exact options
-    // For now, keep the full string format like "Neutral (4)" or "Satisfied (6)"
-    // If Airtable expects just numbers, we'll need to know the exact options
+    // Map Social_Satisfaction - convert frontend format to Airtable format
+    // Frontend sends: "Neutral (4)", "Satisfied (6)", etc.
+    // Airtable expects: "Neutral", "Satisfied", etc. (without numbers)
     let socialSatisfaction = social?.satisfaction;
-    // Ensure it's a string and not empty
-    if (socialSatisfaction && typeof socialSatisfaction !== 'string') {
-      socialSatisfaction = String(socialSatisfaction);
-    }
-    if (socialSatisfaction && socialSatisfaction.trim().length === 0) {
-      socialSatisfaction = undefined;
+    if (socialSatisfaction) {
+      if (typeof socialSatisfaction !== 'string') {
+        socialSatisfaction = String(socialSatisfaction);
+      }
+      // Remove the number in parentheses if present (e.g., "Neutral (4)" -> "Neutral")
+      socialSatisfaction = socialSatisfaction.replace(/\s*\(\d+\)\s*$/, '').trim();
+      if (socialSatisfaction.trim().length === 0) {
+        socialSatisfaction = undefined;
+      }
     }
 
-    // Map Loneliness_Frequency - keep the full formatted string
-    // If Airtable field is a select, it needs to match exact options
-    // For now, keep the full string format like "Sometimes (3)" or "Often (4)"
+    // Map Loneliness_Frequency - convert frontend format to Airtable format
+    // Frontend sends: "Never (1)", "Rarely (2)", "Sometimes (3)", "Often (4)", "Very Often (5)"
+    // Airtable expects: "Never", "Rarely", "Sometimes", "Often", "Very Often" (without numbers)
     let lonelinessFrequency = social?.loneliness;
-    // Ensure it's a string and not empty
-    if (lonelinessFrequency && typeof lonelinessFrequency !== 'string') {
-      lonelinessFrequency = String(lonelinessFrequency);
-    }
-    if (lonelinessFrequency && lonelinessFrequency.trim().length === 0) {
-      lonelinessFrequency = undefined;
+    if (lonelinessFrequency) {
+      if (typeof lonelinessFrequency !== 'string') {
+        lonelinessFrequency = String(lonelinessFrequency);
+      }
+      // Remove the number in parentheses if present (e.g., "Very Often (5)" -> "Very Often")
+      lonelinessFrequency = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
+      // Map to Airtable options (remove any remaining formatting)
+      const lonelinessMap = {
+        'Never': 'Never',
+        'Rarely': 'Rarely',
+        'Sometimes': 'Sometimes',
+        'Often': 'Often',
+        'Very Often': 'Very Often'
+      };
+      // Check if the value matches a known option
+      if (lonelinessMap[lonelinessFrequency]) {
+        lonelinessFrequency = lonelinessMap[lonelinessFrequency];
+      } else if (lonelinessFrequency.trim().length === 0) {
+        lonelinessFrequency = undefined;
+      }
     }
 
     // Build fields object for Airtable
@@ -528,9 +544,41 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       closeFriendsCount = undefined;
     }
 
-    // Map Social_Satisfaction and Loneliness_Frequency (keep as-is, same as createSurveyResponse)
+    // Map Social_Satisfaction - convert frontend format to Airtable format
     let socialSatisfaction = social?.satisfaction;
+    if (socialSatisfaction) {
+      if (typeof socialSatisfaction !== 'string') {
+        socialSatisfaction = String(socialSatisfaction);
+      }
+      // Remove the number in parentheses if present
+      socialSatisfaction = socialSatisfaction.replace(/\s*\(\d+\)\s*$/, '').trim();
+      if (socialSatisfaction.trim().length === 0) {
+        socialSatisfaction = undefined;
+      }
+    }
+
+    // Map Loneliness_Frequency - convert frontend format to Airtable format
     let lonelinessFrequency = social?.loneliness;
+    if (lonelinessFrequency) {
+      if (typeof lonelinessFrequency !== 'string') {
+        lonelinessFrequency = String(lonelinessFrequency);
+      }
+      // Remove the number in parentheses if present
+      lonelinessFrequency = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
+      // Map to Airtable options
+      const lonelinessMap = {
+        'Never': 'Never',
+        'Rarely': 'Rarely',
+        'Sometimes': 'Sometimes',
+        'Often': 'Often',
+        'Very Often': 'Very Often'
+      };
+      if (lonelinessMap[lonelinessFrequency]) {
+        lonelinessFrequency = lonelinessMap[lonelinessFrequency];
+      } else if (lonelinessFrequency.trim().length === 0) {
+        lonelinessFrequency = undefined;
+      }
+    }
 
     // Build fields object for Airtable (same structure as createSurveyResponse)
     const fields = {
