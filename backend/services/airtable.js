@@ -211,26 +211,32 @@ async function createSurveyResponse(surveyData, userId) {
 
     // Map Close_Friends_Count to Airtable format (select field with ranges)
     let closeFriendsCount = social?.closeFriends;
-    // Convert to number if it's a string, or use as-is if already a number
-    let num = typeof closeFriendsCount === 'string' 
-      ? parseInt(closeFriendsCount) 
-      : closeFriendsCount;
     
-    // Always map to the range format that matches Airtable options
-    if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
-      // Map to ranges that match Airtable select options: blank, "0-2", "3-5", "6-10", "10+"
-      if (num <= 2) {
-        closeFriendsCount = '0-2';
-      } else if (num <= 5) {
-        closeFriendsCount = '3-5';
-      } else if (num <= 10) {
-        closeFriendsCount = '6-10';
-      } else {
-        closeFriendsCount = '10+';
-      }
+    // Handle empty string, null, or undefined first
+    if (closeFriendsCount === '' || closeFriendsCount === null || closeFriendsCount === undefined) {
+      closeFriendsCount = undefined; // Will be removed by cleanup if truly empty
     } else {
-      // If invalid, set to undefined so it's not included
-      closeFriendsCount = undefined;
+      // Convert to number if it's a string, or use as-is if already a number
+      let num = typeof closeFriendsCount === 'string' 
+        ? parseInt(closeFriendsCount.trim()) 
+        : closeFriendsCount;
+      
+      // Always map to the range format that matches Airtable options
+      if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
+        // Map to ranges that match Airtable select options: blank, "0-2", "3-5", "6-10", "10+"
+        if (num <= 2) {
+          closeFriendsCount = '0-2';
+        } else if (num <= 5) {
+          closeFriendsCount = '3-5';
+        } else if (num <= 10) {
+          closeFriendsCount = '6-10';
+        } else {
+          closeFriendsCount = '10+';
+        }
+      } else {
+        // If invalid, set to undefined so it's not included
+        closeFriendsCount = undefined;
+      }
     }
 
     // Map Social_Satisfaction - convert frontend format to Airtable format
@@ -346,9 +352,13 @@ async function createSurveyResponse(surveyData, userId) {
       Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
       Specific_Interests: interests?.specific && interests.specific.trim().length > 0 ? interests.specific : undefined,
       
-      // Preferences
-      Free_Time_Per_Week: preferences?.freeTime,
-      Travel_Distance_Willing: preferences?.travelDistance,
+      // Preferences - only set to undefined if truly missing, not if empty string
+      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0 
+        ? preferences.freeTime.trim() 
+        : (preferences?.freeTime || undefined),
+      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0 
+        ? preferences.travelDistance.trim() 
+        : (preferences?.travelDistance || undefined),
       Pref_Indoor: preferences?.indoor || false,
       Pref_Outdoor: preferences?.outdoor || false,
       Pref_Physical_Active: preferences?.physical || false,
@@ -357,6 +367,7 @@ async function createSurveyResponse(surveyData, userId) {
       Pref_Spontaneous: preferences?.spontaneous || false,
       
       // Affinity groups (6 multiple-select fields) - map frontend values to Airtable options
+      // Return empty array instead of undefined - cleanup will handle empty arrays for multi-select fields
       Affinity_Faith_Based: mapAffinityValues(affinityGroups?.faith || [], 'faith'),
       Affinity_LGBTQ: mapAffinityValues(affinityGroups?.lgbtq || [], 'lgbtq'),
       Affinity_Cultural_Ethnic: mapAffinityValues(affinityGroups?.cultural || [], 'cultural'),
@@ -568,22 +579,29 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
 
     // Map Close_Friends_Count to Airtable format (same as createSurveyResponse)
     let closeFriendsCount = social?.closeFriends;
-    let num = typeof closeFriendsCount === 'string' 
-      ? parseInt(closeFriendsCount) 
-      : closeFriendsCount;
     
-    if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
-      if (num <= 2) {
-        closeFriendsCount = '0-2';
-      } else if (num <= 5) {
-        closeFriendsCount = '3-5';
-      } else if (num <= 10) {
-        closeFriendsCount = '6-10';
-      } else {
-        closeFriendsCount = '10+';
-      }
+    // Handle empty string, null, or undefined first
+    if (closeFriendsCount === '' || closeFriendsCount === null || closeFriendsCount === undefined) {
+      closeFriendsCount = undefined; // Will be removed by cleanup if truly empty
     } else {
-      closeFriendsCount = undefined;
+      // Convert to number if it's a string, or use as-is if already a number
+      let num = typeof closeFriendsCount === 'string' 
+        ? parseInt(closeFriendsCount.trim()) 
+        : closeFriendsCount;
+      
+      if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
+        if (num <= 2) {
+          closeFriendsCount = '0-2';
+        } else if (num <= 5) {
+          closeFriendsCount = '3-5';
+        } else if (num <= 10) {
+          closeFriendsCount = '6-10';
+        } else {
+          closeFriendsCount = '10+';
+        }
+      } else {
+        closeFriendsCount = undefined;
+      }
     }
 
     // Map Social_Satisfaction - convert frontend format to Airtable format (same as createSurveyResponse)
@@ -696,30 +714,13 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       Pref_Structured: preferences?.structured || false,
       Pref_Spontaneous: preferences?.spontaneous || false,
       
-      Affinity_Faith_Based: (() => {
-        const values = mapAffinityValues(affinityGroups?.faith || [], 'faith');
-        return values.length > 0 ? values : undefined;
-      })(),
-      Affinity_LGBTQ: (() => {
-        const values = mapAffinityValues(affinityGroups?.lgbtq || [], 'lgbtq');
-        return values.length > 0 ? values : undefined;
-      })(),
-      Affinity_Cultural_Ethnic: (() => {
-        const values = mapAffinityValues(affinityGroups?.cultural || [], 'cultural');
-        return values.length > 0 ? values : undefined;
-      })(),
-      Affinity_Womens: (() => {
-        const values = mapAffinityValues(affinityGroups?.womens || [], 'womens');
-        return values.length > 0 ? values : undefined;
-      })(),
-      Affinity_Young_Prof: (() => {
-        const values = mapAffinityValues(affinityGroups?.youngProf || [], 'youngProf');
-        return values.length > 0 ? values : undefined;
-      })(),
-      Affinity_International: (() => {
-        const values = mapAffinityValues(affinityGroups?.international || [], 'international');
-        return values.length > 0 ? values : undefined;
-      })()
+      // Affinity groups - return empty array instead of undefined, cleanup will handle empty arrays for multi-select fields
+      Affinity_Faith_Based: mapAffinityValues(affinityGroups?.faith || [], 'faith'),
+      Affinity_LGBTQ: mapAffinityValues(affinityGroups?.lgbtq || [], 'lgbtq'),
+      Affinity_Cultural_Ethnic: mapAffinityValues(affinityGroups?.cultural || [], 'cultural'),
+      Affinity_Womens: mapAffinityValues(affinityGroups?.womens || [], 'womens'),
+      Affinity_Young_Prof: mapAffinityValues(affinityGroups?.youngProf || [], 'youngProf'),
+      Affinity_International: mapAffinityValues(affinityGroups?.international || [], 'international')
     };
 
     // Remove undefined, null, empty string, and empty array values
