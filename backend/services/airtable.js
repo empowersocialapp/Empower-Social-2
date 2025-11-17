@@ -238,15 +238,25 @@ async function createSurveyResponse(surveyData, userId) {
     // For now, keep the full string format like "Neutral (4)" or "Satisfied (6)"
     // If Airtable expects just numbers, we'll need to know the exact options
     let socialSatisfaction = social?.satisfaction;
-    // Keep as-is for now - if Airtable is a select field, make sure the options match
-    // the format being sent (e.g., "Very Dissatisfied (1)", "Dissatisfied (2)", etc.)
+    // Ensure it's a string and not empty
+    if (socialSatisfaction && typeof socialSatisfaction !== 'string') {
+      socialSatisfaction = String(socialSatisfaction);
+    }
+    if (socialSatisfaction && socialSatisfaction.trim().length === 0) {
+      socialSatisfaction = undefined;
+    }
 
     // Map Loneliness_Frequency - keep the full formatted string
     // If Airtable field is a select, it needs to match exact options
     // For now, keep the full string format like "Sometimes (3)" or "Often (4)"
     let lonelinessFrequency = social?.loneliness;
-    // Keep as-is for now - if Airtable is a select field, make sure the options match
-    // the format being sent (e.g., "Never (1)", "Rarely (2)", "Sometimes (3)", etc.)
+    // Ensure it's a string and not empty
+    if (lonelinessFrequency && typeof lonelinessFrequency !== 'string') {
+      lonelinessFrequency = String(lonelinessFrequency);
+    }
+    if (lonelinessFrequency && lonelinessFrequency.trim().length === 0) {
+      lonelinessFrequency = undefined;
+    }
 
     // Build fields object for Airtable
     const fields = {
@@ -275,8 +285,8 @@ async function createSurveyResponse(surveyData, userId) {
       Looking_For: (social?.lookingFor || []).filter(v => v && v.trim && v.trim().length > 0),
       
       // Interests (mapped to Airtable labels)
-      Interest_Categories: interestCategories,
-      Specific_Interests: interests?.specific || '',
+      Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
+      Specific_Interests: interests?.specific && interests.specific.trim().length > 0 ? interests.specific : undefined,
       
       // Preferences
       Free_Time_Per_Week: preferences?.freeTime,
@@ -297,9 +307,19 @@ async function createSurveyResponse(surveyData, userId) {
       Affinity_International: mapAffinityValues(affinityGroups?.international || [], 'international')
     };
 
-    // Remove undefined values
+    // Remove undefined, null, empty string, and empty array values
+    // This prevents Airtable from trying to create new select options with invalid values
     Object.keys(fields).forEach(key => {
-      if (fields[key] === undefined) {
+      const value = fields[key];
+      if (value === undefined || value === null || value === '') {
+        delete fields[key];
+      }
+      // Remove empty arrays (especially important for multi-select fields)
+      if (Array.isArray(value) && value.length === 0) {
+        delete fields[key];
+      }
+      // Remove arrays containing only empty strings or whitespace
+      if (Array.isArray(value) && value.every(v => !v || (typeof v === 'string' && v.trim().length === 0))) {
         delete fields[key];
       }
     });
