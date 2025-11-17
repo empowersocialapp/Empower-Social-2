@@ -113,27 +113,38 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
     
     // 6. Generate conceptual recommendations (with caching)
     console.log('=== Generating conceptual recommendations ===');
-    // Create cache key that includes survey data hash to invalidate on changes
+    // Create cache key that includes user and survey data hash to invalidate on changes
     // This ensures edits generate new recommendations
     const surveyDataHash = JSON.stringify({
-      interests: surveyResponse.fields.Interest_Categories || [],
+      user: {
+        age: user.fields?.Age,
+        gender: user.fields?.Gender,
+        zipcode: zipcode
+      },
+      interests: surveyResponse.fields?.Interest_Categories || [],
       affinities: {
-        faith: surveyResponse.fields.Affinity_Faith_Based || [],
-        lgbtq: surveyResponse.fields.Affinity_LGBTQ || [],
-        cultural: surveyResponse.fields.Affinity_Cultural_Ethnic || [],
-        womens: surveyResponse.fields.Affinity_Womens || [],
-        youngProf: surveyResponse.fields.Affinity_Young_Prof || [],
-        international: surveyResponse.fields.Affinity_International || []
+        faith: surveyResponse.fields?.Affinity_Faith_Based || [],
+        lgbtq: surveyResponse.fields?.Affinity_LGBTQ || [],
+        cultural: surveyResponse.fields?.Affinity_Cultural_Ethnic || [],
+        womens: surveyResponse.fields?.Affinity_Womens || [],
+        youngProf: surveyResponse.fields?.Affinity_Young_Prof || [],
+        international: surveyResponse.fields?.Affinity_International || []
       },
       preferences: {
-        freeTime: surveyResponse.fields.Free_Time_Per_Week,
-        travel: surveyResponse.fields.Travel_Distance_Willing
+        freeTime: surveyResponse.fields?.Free_Time_Per_Week,
+        travel: surveyResponse.fields?.Travel_Distance_Willing
+      },
+      scores: {
+        extraversion: calculatedScores.fields?.Extraversion_Category,
+        openness: calculatedScores.fields?.Openness_Category,
+        conscientiousness: calculatedScores.fields?.Conscientiousness_Category
       }
     });
     const cacheKey = `${userId}-${surveyResponse.id}-${Buffer.from(surveyDataHash).toString('base64').slice(0, 16)}`;
     let concepts;
     
-    if (conceptCache.has(cacheKey)) {
+    // Only check cache if not bypassing
+    if (!bypassCache && conceptCache.has(cacheKey)) {
       const cached = conceptCache.get(cacheKey);
       if (Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) { // 24 hours
         console.log('Using cached concepts');
@@ -144,7 +155,7 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
     }
     
     if (!concepts) {
-      console.log('Generating new concepts (cache miss or expired)');
+      console.log(bypassCache ? 'Bypassing cache - generating new concepts' : 'Generating new concepts (cache miss or expired)');
       const conceptResult = await generateConceptualRecommendations(userProfile, recommendationsCount);
       if (!conceptResult.success) {
         return { success: false, error: `Conceptual generation failed: ${conceptResult.error}` };
