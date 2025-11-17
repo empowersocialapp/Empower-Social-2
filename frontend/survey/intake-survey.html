@@ -887,8 +887,8 @@
                         <div>
                             <h4 style="font-family: 'Montserrat', sans-serif; font-size: 16px; margin-bottom: 8px; color: #2C2C2C;">Your Privacy is Protected</h4>
                             <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0;">
-                                Your responses are private and secure. We never share your information without permission, 
-                                and all data is used only to find events you'll love. You can skip any question you're 
+                                Your responses are private and secure. We never share your information without permission,
+                                and all data is used only to find events you'll love. You can skip any question you're
                                 uncomfortable with.
                             </p>
                         </div>
@@ -897,6 +897,32 @@
 
                 <div class="button-group" style="margin-top: 40px;">
                     <button type="button" class="btn-primary" onclick="startSurvey()" style="flex: none; padding: 16px 48px; font-size: 18px;">Get Started</button>
+                </div>
+
+                <!-- Returning User Section -->
+                <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 1px solid #e0e0e0;">
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 18px; margin-bottom: 12px; color: #2C2C2C;">Already taken the survey?</h3>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Log in with your username to view your recommendations</p>
+
+                    <div id="loginSection" style="max-width: 400px; margin: 0 auto;">
+                        <div style="margin-bottom: 16px;">
+                            <input
+                                type="text"
+                                id="loginUsername"
+                                placeholder="Enter your username"
+                                style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;"
+                            >
+                        </div>
+                        <div id="loginError" style="display: none; background: #fee; color: #c33; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 14px;"></div>
+                        <button
+                            type="button"
+                            class="btn-secondary"
+                            onclick="loginUser()"
+                            id="loginButton"
+                            style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                            Access My Recommendations
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -910,6 +936,12 @@
                 <div class="form-group">
                     <label for="firstName">First Name <span class="required">*</span></label>
                     <input type="text" id="firstName" name="firstName">
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" pattern="[a-zA-Z0-9_-]+" minlength="3" maxlength="20">
+                    <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Create a unique username (3-20 characters, letters, numbers, - or _). You'll use this to log back in.</small>
                 </div>
 
                 <div class="form-group">
@@ -1604,6 +1636,85 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Login user with username
+        async function loginUser() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
+
+            // Validate username
+            if (!username) {
+                showLoginError('Please enter your username');
+                return;
+            }
+
+            if (username.length < 3) {
+                showLoginError('Username must be at least 3 characters');
+                return;
+            }
+
+            // Show loading state
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></span>Loading...';
+            hideLoginError();
+
+            try {
+                const API_BASE_URL = 'http://localhost:3000';
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.userId) {
+                    // Store userId and username in localStorage
+                    localStorage.setItem('empower_userId', result.userId);
+                    localStorage.setItem('empower_username', result.username);
+                    localStorage.setItem('empower_name', result.name);
+
+                    // Redirect to recommendations page
+                    window.location.href = `http://localhost:8081/profile/recommendations.html?userId=${result.userId}`;
+                } else {
+                    showLoginError(result.error || 'Username not found. Please check your username or take the survey.');
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Access My Recommendations';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginError('Unable to connect to server. Please make sure the server is running.');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Access My Recommendations';
+            }
+        }
+
+        function showLoginError(message) {
+            const loginError = document.getElementById('loginError');
+            loginError.textContent = message;
+            loginError.style.display = 'block';
+        }
+
+        function hideLoginError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'none';
+        }
+
+        // Allow Enter key to submit login
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginInput = document.getElementById('loginUsername');
+            if (loginInput) {
+                loginInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        loginUser();
+                    }
+                });
+            }
+        });
+
         /**
          * INTEREST CATEGORIES CONFIGURATION
          * 
@@ -2053,13 +2164,23 @@
                 };
                 const travelDistance = travelDistanceMap[document.getElementById('travelDistance').value] || document.getElementById('travelDistance').value;
 
+                // Check if we're in edit mode
+                const urlParams = new URLSearchParams(window.location.search);
+                const isEditMode = urlParams.get('edit') === 'true';
+                const userId = urlParams.get('userId');
+                
                 // Format data for backend API
                 const surveyData = {
                     name: document.getElementById('firstName').value.trim(),
+                    username: document.getElementById('username').value.trim(),
                     email: document.getElementById('email').value.trim(),
                     age: parseInt(document.getElementById('age').value),
                     gender: document.getElementById('gender').value,
                     zipcode: document.getElementById('zipcode').value.trim(),
+                    
+                    // Add userId and isEdit flag for edit mode
+                    userId: isEditMode ? userId : undefined,
+                    isEdit: isEditMode,
                     
                     personality: {
                         q1: q1,
@@ -2139,9 +2260,9 @@
                     
                     // Hide loading spinner
                     hideLoadingSpinner();
-                    
+
                     // Redirect to match page (single-match feedback system)
-                    window.location.href = '/profile/recommendations.html?userId=' + result.userId;
+                    window.location.href = 'http://localhost:8081/profile/recommendations.html?userId=' + result.userId;
                 } else {
                     throw new Error(result.error || 'Failed to submit survey');
                 }
@@ -2185,7 +2306,220 @@
         window.addEventListener('DOMContentLoaded', function() {
             generateBroadCategories();
             setupAffinityToggle();
+            
+            // Check for edit mode on page load
+            const urlParams = new URLSearchParams(window.location.search);
+            const isEditMode = urlParams.get('edit') === 'true';
+            const userId = urlParams.get('userId');
+            
+            if (isEditMode && userId) {
+                loadExistingSurveyData(userId);
+            }
         });
+        
+        // Function to load existing survey data
+        async function loadExistingSurveyData(userId) {
+            try {
+                showLoadingSpinner();
+                const API_BASE_URL = 'http://localhost:3000';
+                const response = await fetch(`${API_BASE_URL}/api/survey/${userId}`);
+                
+                if (!response.ok) {
+                    // Handle HTTP errors - try to get error message
+                    let errorMessage = `HTTP ${response.status}`;
+                    try {
+                        const errorResult = await response.json();
+                        errorMessage = errorResult.error || errorMessage;
+                    } catch (e) {
+                        // If JSON parsing fails, use status text
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    console.error('API Error:', response.status, errorMessage);
+                    hideLoadingSpinner();
+                    alert(`Error loading survey data (${response.status}): ${errorMessage}`);
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const data = result.data;
+                    
+                    // Pre-fill basic info
+                    document.getElementById('firstName').value = data.name || '';
+                    document.getElementById('username').value = data.username || '';
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('age').value = data.age || '';
+                    document.getElementById('gender').value = data.gender || '';
+                    document.getElementById('zipcode').value = data.zipcode || '';
+                    
+                    // Pre-fill personality scores
+                    if (data.personality) {
+                        document.getElementById('q1').value = data.personality.q1 || 4;
+                        document.getElementById('q6').value = data.personality.q6 || 4;
+                        document.getElementById('q3').value = data.personality.q3 || 4;
+                        document.getElementById('q8').value = data.personality.q8 || 4;
+                        document.getElementById('q5').value = data.personality.q5 || 4;
+                        document.getElementById('q10').value = data.personality.q10 || 4;
+                    }
+                    
+                    // Pre-fill motivation scores
+                    if (data.motivation) {
+                        document.getElementById('m1').value = data.motivation.m1 || 3;
+                        document.getElementById('m2').value = data.motivation.m2 || 3;
+                        document.getElementById('m3').value = data.motivation.m3 || 3;
+                        document.getElementById('m4').value = data.motivation.m4 || 3;
+                        document.getElementById('m5').value = data.motivation.m5 || 3;
+                        document.getElementById('m6').value = data.motivation.m6 || 3;
+                    }
+                    
+                    // Pre-fill social data
+                    if (data.social) {
+                        document.getElementById('closeFriends').value = data.social.closeFriends || '';
+                        
+                        // Parse loneliness (format: "Sometimes (3)")
+                        if (data.social.loneliness) {
+                            const lonelinessMatch = data.social.loneliness.match(/\((\d+)\)/);
+                            if (lonelinessMatch) {
+                                document.getElementById('loneliness').value = lonelinessMatch[1];
+                            }
+                        }
+                        
+                        // Parse satisfaction (format: "Neutral (4)")
+                        if (data.social.satisfaction) {
+                            const satisfactionMatch = data.social.satisfaction.match(/\((\d+)\)/);
+                            if (satisfactionMatch) {
+                                document.getElementById('socialSatisfaction').value = satisfactionMatch[1];
+                            }
+                        }
+                    }
+                    
+                    // Pre-fill interests - need to wait for categories to be generated
+                    setTimeout(() => {
+                        if (data.interests) {
+                            // Pre-select categories
+                            if (data.interests.categories && Array.isArray(data.interests.categories)) {
+                                data.interests.categories.forEach(category => {
+                                    // Map Airtable labels back to frontend keys
+                                    const categoryMap = {
+                                        'Sports & Fitness': 'sports',
+                                        'Arts & Culture': 'arts',
+                                        'Food & Dining': 'food',
+                                        'Social & Networking': 'social',
+                                        'Learning & Education': 'learning',
+                                        'Outdoor & Nature': 'outdoor',
+                                        'Technology & Gaming': 'games',
+                                        'Community & Volunteering': 'community',
+                                        'Health & Wellness': 'wellness',
+                                        'Music & Entertainment': 'music'
+                                    };
+                                    const frontendKey = categoryMap[category] || category.toLowerCase().replace(/\s+/g, '-');
+                                    const checkbox = document.querySelector(`input[name="categories"][value="${frontendKey}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                                
+                                // Trigger category selection to generate specific interests
+                                const firstCategory = data.interests.categories[0];
+                                const firstKey = Object.keys(categoryMap).find(k => categoryMap[k] === firstCategory) || firstCategory;
+                                if (firstKey) {
+                                    generateSpecificInterests();
+                                }
+                            }
+                            
+                            // Pre-select specific interests (parse comma-separated string)
+                            setTimeout(() => {
+                                if (data.interests.specific) {
+                                    const interestsList = data.interests.specific.split(',').map(i => i.trim());
+                                    interestsList.forEach(interest => {
+                                        const checkbox = document.querySelector(`input[name="interests"][value="${interest}"]`);
+                                        if (checkbox) checkbox.checked = true;
+                                    });
+                                }
+                            }, 500);
+                        }
+                    }, 100);
+                    
+                    // Pre-fill preferences
+                    if (data.preferences) {
+                        document.getElementById('freeTime').value = data.preferences.freeTime || '';
+                        document.getElementById('travelDistance').value = data.preferences.travelDistance || '';
+                        
+                        // Pre-select preference checkboxes
+                        if (data.preferences.indoor) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="indoor"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        if (data.preferences.outdoor) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="outdoor"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        if (data.preferences.physical) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="physical"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        if (data.preferences.relaxed) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="relaxed"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        if (data.preferences.structured) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="structured"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                        if (data.preferences.spontaneous) {
+                            const checkbox = document.querySelector('input[name="preferences"][value="spontaneous"]');
+                            if (checkbox) checkbox.checked = true;
+                        }
+                    }
+                    
+                    // Pre-fill affinity groups (simplified - you may need to adjust based on your form structure)
+                    if (data.affinityGroups) {
+                        // LGBTQ
+                        if (data.affinityGroups.lgbtq && data.affinityGroups.lgbtq.length > 0) {
+                            const lgbtqCheckbox = document.querySelector('input[name="affinity-lgbtq"]');
+                            if (lgbtqCheckbox) lgbtqCheckbox.checked = true;
+                            
+                            // Show options and pre-select
+                            const lgbtqSection = document.querySelector('.affinity-section[data-category="lgbtq"]');
+                            if (lgbtqSection) {
+                                const optionsDiv = lgbtqSection.querySelector('.affinity-options');
+                                if (optionsDiv) optionsDiv.style.display = 'block';
+                                
+                                data.affinityGroups.lgbtq.forEach(option => {
+                                    // Map Airtable values back to frontend keys
+                                    const optionMap = {
+                                        "Gay men's communities": "gay-men",
+                                        "Lesbian communities": "lesbian",
+                                        "Bisexual/Pansexual communities": "bisexual",
+                                        "Transgender communities": "transgender",
+                                        "Queer/Non-binary communities": "queer-nonbinary",
+                                        "General LGBTQ+ inclusive spaces": "general-lgbtq"
+                                    };
+                                    const frontendKey = optionMap[option] || option.toLowerCase().replace(/\s+/g, '-');
+                                    const checkbox = document.querySelector(`input[name="affinity-lgbtq-options"][value="${frontendKey}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        }
+                        
+                        // Repeat for other affinity groups as needed...
+                        // (You can expand this pattern for faith, cultural, womens, youngProf, international)
+                    }
+                    
+                    // Auto-start survey (skip welcome page)
+                    startSurvey();
+                    
+                    hideLoadingSpinner();
+                } else {
+                    hideLoadingSpinner();
+                    console.error('API Response:', result);
+                    alert(`Could not load survey data: ${result.error || 'Unknown error'}. Please check the console for details.`);
+                }
+            } catch (error) {
+                console.error('Error loading survey data:', error);
+                hideLoadingSpinner();
+                alert('Error loading survey data: ' + error.message + '. Check browser console for details.');
+            }
+        }
 
         // Affinity expand/collapse functionality
         function setupAffinityToggle() {

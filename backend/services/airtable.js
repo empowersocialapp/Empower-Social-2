@@ -12,6 +12,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
  * Create a new user record in the Users table
  * @param {Object} userData - User information
  * @param {string} userData.name - User's name
+ * @param {string} userData.username - User's username
  * @param {string} userData.email - User's email
  * @param {number} userData.age - User's age
  * @param {string} userData.gender - User's gender
@@ -20,12 +21,25 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
  */
 async function createUser(userData) {
   try {
-    const { name, email, age, gender, zipcode } = userData;
+    const { name, username, email, age, gender, zipcode } = userData;
 
-    if (!name || !email || !age || !gender || !zipcode) {
+    if (!name || !username || !email || !age || !gender || !zipcode) {
       return {
         success: false,
-        error: 'Missing required user fields: name, email, age, gender, zipcode'
+        error: 'Missing required user fields: name, username, email, age, gender, zipcode'
+      };
+    }
+
+    // Check if username already exists
+    const existingUsers = await base('Users').select({
+      filterByFormula: `{Username} = '${username}'`,
+      maxRecords: 1
+    }).firstPage();
+
+    if (existingUsers.length > 0) {
+      return {
+        success: false,
+        error: 'Username already taken. Please choose a different username.'
       };
     }
 
@@ -33,6 +47,7 @@ async function createUser(userData) {
       {
         fields: {
           Name: name,
+          Username: username,
           Email: email,
           Age: age,
           Gender: gender,
@@ -379,10 +394,297 @@ async function createCalculatedScores(userId, surveyResponseId) {
   }
 }
 
+/**
+ * Find a user by username
+ * @param {string} username - Username to look up
+ * @returns {Promise<Object>} {success: boolean, data: {userId, username, name} | error: string}
+ */
+async function getUserByUsername(username) {
+  try {
+    if (!username) {
+      return {
+        success: false,
+        error: 'Username is required'
+      };
+    }
+
+    const records = await base('Users').select({
+      filterByFormula: `{Username} = '${username}'`,
+      maxRecords: 1
+    }).firstPage();
+
+    if (records.length === 0) {
+      return {
+        success: false,
+        error: 'User not found'
+      };
+    }
+
+    const record = records[0];
+
+    return {
+      success: true,
+      data: {
+        userId: record.id,
+        username: record.fields.Username,
+        name: record.fields.Name,
+        email: record.fields.Email
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to fetch user'
+    };
+  }
+}
+
+/**
+ * Update an existing survey response record
+ * @param {string} surveyResponseId - Airtable Survey_Response record ID
+ * @param {Object} surveyData - Survey data to update
+ * @returns {Promise<Object>} {success: boolean, data: {record} | error: string}
+ */
+async function updateSurveyResponse(surveyResponseId, surveyData) {
+  try {
+    if (!surveyResponseId) {
+      return {
+        success: false,
+        error: 'surveyResponseId is required'
+      };
+    }
+
+    console.log('=== updateSurveyResponse called ===');
+    console.log('Raw surveyData.affinityGroups:', JSON.stringify(surveyData.affinityGroups, null, 2));
+
+    const { personality, motivation, social, interests, preferences, affinityGroups } = surveyData;
+    
+    console.log('Extracted affinityGroups:', JSON.stringify(affinityGroups, null, 2));
+
+    // Map frontend category keys to Airtable labels (same as createSurveyResponse)
+    const categoryLabelMap = {
+      'sports': 'Sports & Fitness',
+      'arts': 'Arts & Culture',
+      'food': 'Food & Dining',
+      'social': 'Social & Networking',
+      'learning': 'Learning & Education',
+      'outdoor': 'Outdoor & Nature',
+      'games': 'Technology & Gaming',
+      'community': 'Community & Volunteering',
+      'wellness': 'Health & Wellness',
+      'music': 'Music & Entertainment'
+    };
+
+    // Convert category keys to labels for Airtable, filter out empty strings
+    const interestCategories = (interests?.categories || [])
+      .filter(key => key && key.trim().length > 0)
+      .map(key => {
+        return categoryLabelMap[key] || key;
+      })
+      .filter(label => label && label.trim().length > 0);
+    
+    console.log('=== Interest Categories Mapping ===');
+    console.log('Frontend categories:', interests?.categories);
+    console.log('Mapped categories:', interestCategories);
+
+    // Map Close_Friends_Count to Airtable format (same as createSurveyResponse)
+    let closeFriendsCount = social?.closeFriends;
+    let num = typeof closeFriendsCount === 'string' 
+      ? parseInt(closeFriendsCount) 
+      : closeFriendsCount;
+    
+    if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
+      if (num <= 2) {
+        closeFriendsCount = '0-2';
+      } else if (num <= 5) {
+        closeFriendsCount = '3-5';
+      } else if (num <= 10) {
+        closeFriendsCount = '6-10';
+      } else {
+        closeFriendsCount = '10+';
+      }
+    } else {
+      closeFriendsCount = undefined;
+    }
+
+    // Map Social_Satisfaction and Loneliness_Frequency (keep as-is, same as createSurveyResponse)
+    let socialSatisfaction = social?.satisfaction;
+    let lonelinessFrequency = social?.loneliness;
+
+    // Build fields object for Airtable (same structure as createSurveyResponse)
+    const fields = {
+      Q1_Extraverted_Enthusiastic: personality?.q1,
+      Q6_Reserved_Quiet: personality?.q6,
+      Q3_Dependable_Disciplined: personality?.q3,
+      Q8_Disorganized_Careless: personality?.q8,
+      Q5_Open_Complex: personality?.q5,
+      Q10_Conventional_Uncreative: personality?.q10,
+      
+      M1_Enjoyable_Fun: motivation?.m1,
+      M2_Time_With_People: motivation?.m2,
+      M3_Develop_Skills: motivation?.m3,
+      M4_Energized_Engaged: motivation?.m4,
+      M5_Meet_New_People: motivation?.m5,
+      M6_Challenge_Myself: motivation?.m6,
+      
+      Close_Friends_Count: closeFriendsCount,
+      Social_Satisfaction: socialSatisfaction,
+      Loneliness_Frequency: lonelinessFrequency,
+      Looking_For: (social?.lookingFor || []).filter(v => v && v.trim && v.trim().length > 0),
+      
+      Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
+      Specific_Interests: interests?.specific || undefined,
+      
+      Free_Time_Per_Week: preferences?.freeTime || undefined,
+      Travel_Distance_Willing: preferences?.travelDistance || undefined,
+      Pref_Indoor: preferences?.indoor || false,
+      Pref_Outdoor: preferences?.outdoor || false,
+      Pref_Physical_Active: preferences?.physical || false,
+      Pref_Relaxed_Lowkey: preferences?.relaxed || false,
+      Pref_Structured: preferences?.structured || false,
+      Pref_Spontaneous: preferences?.spontaneous || false,
+      
+      Affinity_Faith_Based: (() => {
+        const values = mapAffinityValues(affinityGroups?.faith || [], 'faith');
+        return values.length > 0 ? values : undefined;
+      })(),
+      Affinity_LGBTQ: (() => {
+        const values = mapAffinityValues(affinityGroups?.lgbtq || [], 'lgbtq');
+        return values.length > 0 ? values : undefined;
+      })(),
+      Affinity_Cultural_Ethnic: (() => {
+        const values = mapAffinityValues(affinityGroups?.cultural || [], 'cultural');
+        return values.length > 0 ? values : undefined;
+      })(),
+      Affinity_Womens: (() => {
+        const values = mapAffinityValues(affinityGroups?.womens || [], 'womens');
+        return values.length > 0 ? values : undefined;
+      })(),
+      Affinity_Young_Prof: (() => {
+        const values = mapAffinityValues(affinityGroups?.youngProf || [], 'youngProf');
+        return values.length > 0 ? values : undefined;
+      })(),
+      Affinity_International: (() => {
+        const values = mapAffinityValues(affinityGroups?.international || [], 'international');
+        return values.length > 0 ? values : undefined;
+      })()
+    };
+
+    // Remove undefined, null, empty string, and empty array values
+    Object.keys(fields).forEach(key => {
+      if (fields[key] === undefined || fields[key] === null || fields[key] === '') {
+        delete fields[key];
+      }
+      // Also remove empty arrays for select fields
+      if (Array.isArray(fields[key]) && fields[key].length === 0) {
+        delete fields[key];
+      }
+    });
+
+    // Debug logging
+    console.log('Updating survey response with fields:', JSON.stringify(fields, null, 2));
+    console.log('Close_Friends_Count value:', fields.Close_Friends_Count);
+    console.log('Social_Satisfaction value:', fields.Social_Satisfaction);
+    console.log('Loneliness_Frequency value:', fields.Loneliness_Frequency);
+    console.log('Affinity_LGBTQ (mapped):', fields.Affinity_LGBTQ);
+
+    const record = await base('Survey_Responses').update(surveyResponseId, fields);
+
+    return {
+      success: true,
+      data: {
+        surveyResponseId: record.id,
+        record: record.fields
+      }
+    };
+  } catch (error) {
+    console.error('Error updating survey response:', error);
+    
+    // Enhanced error logging for select field issues
+    if (error.message && error.message.includes('INVALID_MULTIPLE_CHOICE_OPTIONS')) {
+      console.error('=== SELECT FIELD ERROR ===');
+      console.error('This error means a value being sent doesn\'t match Airtable\'s select options.');
+    }
+    
+    return {
+      success: false,
+      error: error.message || 'Failed to update survey response record'
+    };
+  }
+}
+
+/**
+ * Update calculated scores record (triggers recalculation via Airtable formulas)
+ * @param {string} userId - Airtable User record ID
+ * @param {string} surveyResponseId - Airtable Survey_Response record ID
+ * @returns {Promise<Object>} {success: boolean, data: {calculatedScoresId} | error: string}
+ */
+async function updateCalculatedScores(userId, surveyResponseId) {
+  try {
+    if (!userId || !surveyResponseId) {
+      return {
+        success: false,
+        error: 'userId and surveyResponseId are required'
+      };
+    }
+
+    // Find existing Calculated_Scores record for this user and survey response
+    // Note: Field name might be 'Survey Response' or 'Survey_Response' - try without filter first
+    let calculatedScores = await base('Calculated_Scores')
+      .select({
+        maxRecords: 100
+      })
+      .firstPage();
+    
+    // Filter in JavaScript to find matching record
+    calculatedScores = calculatedScores.filter(record => {
+      const userLinks = record.fields.User || [];
+      const surveyLinks = record.fields['Survey Response'] || record.fields['Survey_Response'] || [];
+      return Array.isArray(userLinks) && userLinks.includes(userId) &&
+             Array.isArray(surveyLinks) && surveyLinks.includes(surveyResponseId);
+    });
+
+    // Already filtered above, no need for fallback
+
+    if (calculatedScores.length > 0) {
+      // Update existing record (just touch it to trigger recalculation)
+      const recordId = calculatedScores[0].id;
+      await base('Calculated_Scores').update(recordId, {
+        // Just update a timestamp or touch the record to trigger formulas
+        // Airtable will recalculate formulas automatically
+      });
+
+      // Fetch the updated record to get recalculated values
+      const fullRecord = await base('Calculated_Scores').find(recordId);
+
+      return {
+        success: true,
+        data: {
+          calculatedScoresId: fullRecord.id,
+          record: fullRecord.fields
+        }
+      };
+    } else {
+      // No existing record, create a new one
+      return await createCalculatedScores(userId, surveyResponseId);
+    }
+  } catch (error) {
+    console.error('Error updating calculated scores:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to update calculated scores'
+    };
+  }
+}
+
 module.exports = {
   createUser,
   createSurveyResponse,
   createCalculatedScores,
+  updateSurveyResponse,
+  updateCalculatedScores,
+  getUserByUsername,
   base // Export base for other services that might need direct access
 };
 

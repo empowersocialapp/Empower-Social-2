@@ -1,15 +1,14 @@
 # Quick Setup Guide for Empower-Social Repository
 
-## 📦 Files to Upload
+## 📦 Repository Structure
 
-Make sure you have these files ready:
-- ✅ README.md
-- ✅ LICENSE
-- ✅ .gitignore
-- ✅ intake-survey.html
-- ✅ recommendations-mockup.html
-- ✅ EMPOWER_SYSTEM_GUIDE.md
-- ✅ SETUP_GUIDE.md (optional - for your reference)
+The repository contains:
+- ✅ `backend/` - Node.js + Express API server
+- ✅ `frontend/` - HTML/CSS/JavaScript frontend
+- ✅ `docs/` - Complete documentation
+- ✅ `README.md` - Main project documentation
+- ✅ `LICENSE` - License file
+- ✅ `.gitignore` - Git ignore rules
 
 ---
 
@@ -43,7 +42,7 @@ git commit -m "Initial commit: Empower MVP with survey and prompt generation"
 
 ```bash
 # Add your GitHub repository as remote
-git remote add origin https://github.com/empowersocialapp/Empower-Social.git
+git remote add origin https://github.com/empowersocialapp/Empower-Social-2.git
 
 # Set main as default branch
 git branch -M main
@@ -177,9 +176,8 @@ git checkout main
 
 ## 🎯 Your Repository URLs
 
-- **Main repo:** https://github.com/empowersocialapp/Empower-Social
-- **Issues:** https://github.com/empowersocialapp/Empower-Social/issues
-- **Live site (if Pages enabled):** https://empowersocialapp.github.io/Empower-Social/
+- **Main repo:** https://github.com/empowersocialapp/Empower-Social-2
+- **Issues:** https://github.com/empowersocialapp/Empower-Social-2/issues
 
 ---
 

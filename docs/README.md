@@ -223,86 +223,109 @@ Beautiful card-based UI showing:
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/empowersocialapp/Empower-Social.git
-cd Empower-Social
+git clone https://github.com/empowersocialapp/Empower-Social-2.git
+cd Empower-Social-2
 ```
 
-2. **Open the survey**
+2. **Set up backend**
 ```bash
-# Simply open the HTML file in your browser
-open intake-survey.html
-# or on Windows
-start intake-survey.html
+cd backend
+npm install
+# Create .env file with API keys (see docs/QUICK_API_SETUP.md)
+npm start
 ```
 
-3. **Test the survey**
+3. **Open the survey**
+```bash
+# Frontend runs on local server (port 8081)
+# Or open directly in browser:
+open frontend/survey/intake-survey.html
+```
+
+4. **Test the survey**
 - Fill out all 7 pages
 - Click Submit
-- Open browser console (F12) to see generated GPT prompt
+- View recommendations on the results page
 
 ### File Overview
 
 ```
 Empower-Social/
-├── intake-survey.html          # Main survey application
-├── recommendations-mockup.html # Visual mockup of recommendations display
-├── README.md                   # This file
-├── EMPOWER_SYSTEM_GUIDE.md    # Detailed technical documentation
-└── assets/                     # (Future: images, icons)
+├── backend/                    # Node.js + Express API server
+│   ├── server.js              # Main server file
+│   ├── routes/                # API route handlers
+│   ├── services/              # Airtable & OpenAI integrations
+│   └── scripts/               # Utility scripts
+├── frontend/                   # HTML/CSS/JavaScript frontend
+│   ├── survey/                # Intake survey
+│   ├── profile/               # Login & recommendations pages
+│   └── assets/                # CSS & JavaScript files
+├── docs/                       # Documentation
+└── tests/                      # Test files
 ```
 
 ---
 
 ## 📁 File Structure
 
-### `intake-survey.html`
+### `frontend/survey/intake-survey.html`
 Complete 7-page survey with:
 - Form validation
 - Score calculation
 - Dynamic prompt generation
 - Modular interest system
 - Responsive design
+- Edit mode support (pre-fills existing data)
 
 **Key Functions:**
 - `generateBroadCategories()` - Renders interest categories from config
 - `generateSpecificInterests()` - Shows selected category details
-- `generatePersonalizedGPTPrompt()` - Creates custom AI prompt
-- `calculateEventMatchScore()` - (Future) Scores events
+- `loadExistingSurveyData()` - Loads user data for editing
+- Form submission with edit/new mode detection
 
-### `recommendations-mockup.html`
-Visual mockup showing:
-- Card-based event layout
-- Match scores and badges
-- Reasoning for matches
-- Sign-up buttons
-- Save functionality
+### `frontend/profile/recommendations.html`
+Recommendations display page showing:
+- Card-based recommendation layout
+- Personalized explanations
+- Regenerate recommendations button
+- Edit survey button
+- User profile information
 
-### `EMPOWER_SYSTEM_GUIDE.md`
-Comprehensive technical documentation:
-- Step-by-step flow explanation
-- Score interpretation formulas
-- GPT prompt structure
-- API integration guide
-- Database schema
+### `backend/server.js`
+Express.js API server with:
+- Survey submission endpoint
+- Recommendations fetching/regeneration
+- User authentication
+- Airtable integration
+- OpenAI GPT-4 integration
+
+### Documentation Files
+- `docs/EMPOWER_SYSTEM_GUIDE.md` - Comprehensive technical documentation
+- `docs/QUICK_API_SETUP.md` - Quick setup guide for API keys
+- `docs/AIRTABLE_SETUP_GUIDE.md` - Airtable database setup
+- `CURSOR_CONTEXT.md` - Project context for AI assistants
 
 ---
 
 ## 🗺 Roadmap
 
-### Phase 1: MVP (Current)
+### Phase 1: MVP (Current) ✅
 - [x] Survey design and implementation
 - [x] Score calculation logic
 - [x] GPT prompt generation
 - [x] UI/UX design
-- [ ] Database integration (Airtable)
-- [ ] Custom GPT setup and testing
+- [x] Database integration (Airtable)
+- [x] OpenAI GPT-4 integration
+- [x] Recommendations display page
+- [x] User authentication (login)
+- [x] Survey editing functionality
 
-### Phase 2: Core Features
-- [ ] User authentication (sign up/login)
-- [ ] GPT API integration
-- [ ] Recommendations display page
-- [ ] Save/bookmark events
+### Phase 2: Core Features (In Progress)
+- [x] User profile management
+- [x] Recommendation regeneration
+- [ ] Save/bookmark recommendations
 - [ ] User dashboard
+- [ ] Feedback system
 
 ### Phase 3: Enhancement
 - [ ] Refresh recommendations (get new matches anytime)
@@ -322,16 +345,20 @@ Comprehensive technical documentation:
 
 ## 🧪 Development & Testing
 
-### Testing the Survey
-1. Open `intake-survey.html` in browser
-2. Fill out all 7 pages with realistic data
-3. Check browser console (F12) after submission
-4. Verify:
-   - All scores calculated correctly
-   - Personality interpretation accurate
-   - Social need score makes sense
-   - GPT prompt includes all data
-   - Date range is dynamic (next 30 days)
+### Testing the System
+1. Start backend server: `cd backend && npm start`
+2. Open `frontend/survey/intake-survey.html` in browser
+3. Fill out all 7 pages with realistic data
+4. Submit survey and verify:
+   - User created in Airtable
+   - Survey response saved
+   - Recommendations generated
+   - Recommendations displayed on results page
+5. Test edit mode:
+   - Login with username
+   - Click "Edit Survey"
+   - Modify data and resubmit
+   - Verify new recommendations generated
 
 ### Modifying Interests
 Edit the `interestCategories` object in the JavaScript:
@@ -351,13 +378,14 @@ const interestCategories = {
 };
 ```
 
-### Viewing the Mockup
-1. Open `recommendations-mockup.html` in browser
-2. See example event cards with:
-   - Match scores and badges
-   - Personalized reasoning
-   - Images and metadata
-   - Interactive buttons
+### Viewing Recommendations
+1. Complete the survey or login with existing username
+2. View recommendations on `frontend/profile/recommendations.html`
+3. See personalized recommendation cards with:
+   - Activity concepts and types
+   - Detailed explanations
+   - Regenerate option
+   - Edit survey option
 
 ---
 
@@ -365,9 +393,9 @@ const interestCategories = {
 
 Empower takes user privacy seriously:
 
-- ✅ **No data collection** in current version (all client-side)
-- ✅ **Transparent scoring** (all calculations visible in console)
-- 🔄 **Future:** Encrypted storage and secure authentication
+- ✅ **Secure storage** - User data stored in Airtable (encrypted at rest)
+- ✅ **Transparent scoring** - All calculations visible and verifiable
+- ✅ **User control** - Users can edit their profiles anytime
 - 🔄 **Future:** User data export and deletion options
 - 🔄 **Future:** GDPR and CCPA compliance
 
@@ -405,7 +433,7 @@ Empower takes user privacy seriously:
 
 **Current Version:** 1.0.0 (MVP - Survey Complete)
 
-**Last Updated:** November 12, 2025
+**Last Updated:** November 17, 2025
 
 **Status:** 🟡 In Active Development
 

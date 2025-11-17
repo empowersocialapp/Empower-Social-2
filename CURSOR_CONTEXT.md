@@ -16,7 +16,7 @@ Psychology-based social activity recommendation system. Users take a scientifica
 
 ### Tech Stack:
 - **Frontend**: Vanilla HTML/CSS/JavaScript
-- **Backend**: Node.js + Express (TO BUILD)
+- **Backend**: Node.js + Express (✅ BUILT)
 - **Database**: Airtable (cloud-based, formulas auto-calculate scores)
 - **AI**: OpenAI GPT-4-turbo
 - **Deployment**: Netlify/Vercel (planned)
@@ -169,18 +169,22 @@ Psychology-based social activity recommendation system. Users take a scientifica
 ## What's Built vs What's Needed
 
 ✅ **Built:**
-- Survey UI (complete, production-ready)
+- Survey UI (complete, production-ready with edit mode)
 - Airtable database (fully configured with formulas)
 - GPT prompt template (comprehensive, tested)
-- Test script (works, generates good recommendations)
-
-🔨 **Need to Build:**
 - Backend API server (server.js, routes, services)
-- Survey submission handler
+- Survey submission handler (create & update)
 - Airtable integration functions
-- GPT-4 integration wrapper
+- GPT-4 integration wrapper (conceptual recommendations)
 - Results page UI (display recommendations)
+- User authentication (login)
+- Recommendation regeneration
+
+🔨 **Future Enhancements:**
+- Real event matching (match concepts to actual events with URLs)
 - Geocoding service (zipcode → city/state)
+- User feedback system
+- Save/bookmark functionality
 
 ## Cost & Performance
 
@@ -219,7 +223,6 @@ Psychology-based social activity recommendation system. Users take a scientifica
 - Integration tests for Airtable + OpenAI flow
 - Use sample test data from tests/sample-data/
 - Mock external APIs in tests to avoid costs
-- Test script: tests/test_gpt_prompt.js
 
 ## Environment Variables Required
 ```

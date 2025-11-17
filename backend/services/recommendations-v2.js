@@ -106,7 +106,24 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
     
     // 6. Generate conceptual recommendations (with caching)
     console.log('=== Generating conceptual recommendations ===');
-    const cacheKey = `${userId}-${surveyResponse.id}-${calculatedScores.id}`;
+    // Create cache key that includes survey data hash to invalidate on changes
+    // This ensures edits generate new recommendations
+    const surveyDataHash = JSON.stringify({
+      interests: surveyResponse.fields.Interest_Categories || [],
+      affinities: {
+        faith: surveyResponse.fields.Affinity_Faith_Based || [],
+        lgbtq: surveyResponse.fields.Affinity_LGBTQ || [],
+        cultural: surveyResponse.fields.Affinity_Cultural_Ethnic || [],
+        womens: surveyResponse.fields.Affinity_Womens || [],
+        youngProf: surveyResponse.fields.Affinity_Young_Prof || [],
+        international: surveyResponse.fields.Affinity_International || []
+      },
+      preferences: {
+        freeTime: surveyResponse.fields.Free_Time_Per_Week,
+        travel: surveyResponse.fields.Travel_Distance_Willing
+      }
+    });
+    const cacheKey = `${userId}-${surveyResponse.id}-${Buffer.from(surveyDataHash).toString('base64').slice(0, 16)}`;
     let concepts;
     
     if (conceptCache.has(cacheKey)) {
@@ -120,6 +137,7 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
     }
     
     if (!concepts) {
+      console.log('Generating new concepts (cache miss or expired)');
       const conceptResult = await generateConceptualRecommendations(userProfile, recommendationsCount);
       if (!conceptResult.success) {
         return { success: false, error: `Conceptual generation failed: ${conceptResult.error}` };

@@ -99,6 +99,13 @@ Motivations:
 Interests: ${Array.isArray(survey.Interest_Categories) ? survey.Interest_Categories.join(', ') : survey.Interest_Categories}
 Specific Interests: ${survey.Specific_Interests || 'Not specified'}
 
+CRITICAL - INTEREST RESTRICTIONS:
+- ONLY recommend activities from the interest categories listed above: ${Array.isArray(survey.Interest_Categories) ? survey.Interest_Categories.join(', ') : survey.Interest_Categories}
+- DO NOT recommend activities from categories NOT in the list above
+- If "Sports & Fitness" is NOT in the list, DO NOT recommend any sports activities
+- If "Arts & Culture" is NOT in the list, DO NOT recommend arts/cultural activities
+- Only use the specific interest categories the user has selected
+
 Social Needs:
 - Close Friends: ${survey.Close_Friends_Count}
 - Social Satisfaction: ${survey.Social_Satisfaction}
@@ -126,8 +133,8 @@ LOCATION CONTEXT:
 
 REQUIREMENTS:
 - Generate exactly ${count} concepts
-- 50% should be RECURRING ORGANIZATIONS/GROUPS: sports leagues, clubs, classes, regular meetups, ongoing groups
-- 50% should be ONE-TIME EVENTS: workshops, concerts, festivals, pop-ups, street events
+- 50% should be RECURRING ORGANIZATIONS/GROUPS: clubs, classes, regular meetups, ongoing groups (ONLY from interest categories listed above)
+- 50% should be ONE-TIME EVENTS: workshops, concerts, festivals, pop-ups, street events (ONLY from interest categories listed above)
 - EVERY concept must be SOCIAL - done with others, not solo
 - Focus on URBAN-FRIENDLY activities that thrive in cities
 - NOT rural activities: avoid camping, fishing, hunting, birdwatching
@@ -137,9 +144,9 @@ REQUIREMENTS:
 - Each concept tailored to THIS specific person in an URBAN, SOCIAL environment
 
 SEARCH QUERY REQUIREMENTS (CRITICAL):
-- For RECURRING activities: Search for ORGANIZATIONS, LEAGUES, CLUBS, GROUPS, CLASSES
+- For RECURRING activities: Search for ORGANIZATIONS, LEAGUES, CLUBS, GROUPS, CLASSES (ONLY from interest categories listed above)
   * Format: "join [activity] league [location]", "join [activity] club [location]", "[activity] meetup group [location]", "[activity] class [location]"
-  * Examples: "join adult soccer league ${location}", "join pottery club ${location}", "running group ${location}", "yoga class ${location}"
+  * Examples (only if those categories are selected): "join pottery club ${location}", "join book club ${location}", "join cooking class ${location}", "join art workshop ${location}"
   
 - For ONE-TIME events: Search for SPECIFIC EVENTS, WORKSHOPS, TOURNAMENTS, TOURS
   * Format: "attend [activity] workshop [location]", "[activity] event [location] this week", "[activity] tournament [location]", "[activity] tour [location]"

@@ -198,8 +198,7 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
       try {
         const allRecent = await base('Survey_Responses')
           .select({
-            maxRecords: 100,
-            sort: [{ field: 'createdTime', direction: 'desc' }]
+            maxRecords: 100
           })
           .firstPage();
         
@@ -247,6 +246,26 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
           maxRecords: 10
         })
         .firstPage();
+    }
+
+    // Last resort: fetch all and filter in JavaScript
+    if (calculatedScores.length === 0) {
+      try {
+        const allRecent = await base('Calculated_Scores')
+          .select({
+            maxRecords: 100
+          })
+          .firstPage();
+
+        // Filter in JavaScript by checking if User array contains our userId
+        calculatedScores = allRecent.filter(record => {
+          const userLinks = record.fields.User || [];
+          return Array.isArray(userLinks) && userLinks.includes(userId);
+        });
+        console.log(`Query 3 (fetch all and filter): Found ${calculatedScores.length} calculated scores`);
+      } catch (fetchAllError) {
+        console.log(`Query 3 failed: ${fetchAllError.message}`);
+      }
     }
 
     if (calculatedScores.length === 0) {
@@ -322,10 +341,17 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
     // Conceptual system succeeded
     const { recommendations, stats } = recommendationsResult.data;
 
+    // Convert array to string if needed (v2 system returns array)
+    const recommendationsText = Array.isArray(recommendations)
+      ? recommendations.map(r =>
+          `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
+        ).join('\n\n---\n\n')
+      : recommendations;
+
     return res.status(200).json({
       success: true,
       userId: userId,
-      recommendations: recommendations,
+      recommendations: recommendationsText,
       method: method,
       stats: stats,
       message: 'Recommendations regenerated successfully (conceptual system)'

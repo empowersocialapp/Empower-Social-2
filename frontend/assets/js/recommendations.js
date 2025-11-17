@@ -289,9 +289,10 @@ function displayRecommendations(recommendations, userId, userName = null) {
             <div style="background: #f9f9f9; padding: 32px; border-radius: 12px; border: 2px solid #f0f0f0; white-space: pre-wrap; font-family: monospace; font-size: 14px; max-height: 600px; overflow-y: auto; margin-bottom: 20px;">
                 ${escapeHtml(recommendations.substring(0, 5000))}
             </div>
-            <div style="margin-top: 40px; text-align: center;">
-                <button type="button" class="btn-primary" onclick="window.location.href='/survey/intake-survey.html'" style="margin-right: 12px;">Take Survey Again</button>
+            <div style="margin-top: 40px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='http://localhost:8081/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
                 ${userId ? `<button type="button" class="btn-secondary" onclick="regenerateRecommendations('${userId}')">Get New Recommendations</button>` : ''}
+                <button type="button" class="btn-secondary" onclick="window.location.href='/profile/login.html'" style="border-color: #667eea; color: #667eea;">Login as Different User</button>
             </div>
         `;
         document.querySelector('.recommendations-container').innerHTML = recommendationsHTML;
@@ -355,9 +356,10 @@ function displayRecommendations(recommendations, userId, userName = null) {
             ${listItems}
         </div>
         
-        <div style="margin-top: 40px; text-align: center;">
-            <button type="button" class="btn-primary" onclick="window.location.href='/survey/intake-survey.html'" style="margin-right: 12px;">Take Survey Again</button>
+        <div style="margin-top: 40px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='http://localhost:8081/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
             ${userId ? `<button type="button" class="btn-secondary" onclick="regenerateRecommendations('${userId}')">Get New Recommendations</button>` : ''}
+            <button type="button" class="btn-secondary" onclick="window.location.href='/profile/login.html'" style="border-color: #667eea; color: #667eea;">Login as Different User</button>
         </div>
     `;
     

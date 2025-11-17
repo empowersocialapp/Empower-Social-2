@@ -2,10 +2,10 @@
 
 ## Required APIs
 
-The system only needs **2 APIs** for conceptual recommendations:
+The system requires **2 APIs** for conceptual recommendations:
 
-1. **OpenAI API** - Generate personalized recommendations
-2. **Airtable API** - Store user data and recommendations
+1. **OpenAI API** - Generate personalized recommendations using GPT-4
+2. **Airtable API** - Store user data, survey responses, and recommendations
 
 ---
 

@@ -282,6 +282,13 @@ ${Array.isArray(surveyData.Interest_Categories) ? surveyData.Interest_Categories
 **Specific Interests:**
 ${surveyData.Specific_Interests || 'Not specified'}
 
+**CRITICAL - INTEREST RESTRICTIONS:**
+- ONLY recommend activities from the interest categories listed above
+- DO NOT recommend activities from categories NOT in the list
+- If "Sports & Fitness" is NOT in the list, DO NOT recommend any sports activities
+- If "Arts & Culture" is NOT in the list, DO NOT recommend arts/cultural activities
+- Only use the specific interest categories the user has selected
+
 **Activity Preferences:**
 - Free Time Available: ${surveyData.Free_Time_Per_Week}
 - Willing to Travel: ${surveyData.Travel_Distance_Willing}

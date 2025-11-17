@@ -58,6 +58,7 @@
             font-size: 14px;
         }
         
+        input[type="text"],
         input[type="email"] {
             width: 100%;
             padding: 14px;
@@ -67,7 +68,8 @@
             font-family: 'Montserrat', sans-serif;
             transition: border-color 0.3s;
         }
-        
+
+        input[type="text"]:focus,
         input[type="email"]:focus {
             outline: none;
             border-color: #667eea;
@@ -148,23 +150,25 @@
 <body>
     <div class="login-container">
         <h1>Empower Social</h1>
-        <p class="subtitle">Access Your Recommendations</p>
-        
+        <p class="subtitle">Welcome Back! Access Your Recommendations</p>
+
         <div class="error-message" id="errorMessage"></div>
-        
+
         <form id="loginForm">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    required 
-                    placeholder="Enter the email you used for the survey"
-                    autocomplete="email"
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    placeholder="Enter your username"
+                    autocomplete="username"
+                    pattern="[a-zA-Z0-9_-]+"
+                    minlength="3"
                 >
             </div>
-            
+
             <button type="submit" class="btn-primary" id="submitBtn">
                 Access My Recommendations
             </button>
@@ -182,43 +186,46 @@
         
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            
-            if (!email) {
-                showError('Please enter your email address');
+
+            const username = document.getElementById('username').value.trim();
+
+            if (!username) {
+                showError('Please enter your username');
                 return;
             }
-            
+
             // Show loading state
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner"></span>Loading...';
             hideError();
-            
+
             try {
                 const API_BASE_URL = 'http://localhost:3000';
-                const response = await fetch(`${API_BASE_URL}/api/user/by-email`, {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({ username })
                 });
-                
+
                 const result = await response.json();
-                
-                if (result.success && result.data && result.data.userId) {
-                    // Store userId in localStorage
-                    localStorage.setItem('empower_userId', result.data.userId);
-                    
+
+                if (result.success && result.userId) {
+                    // Store userId and username in localStorage
+                    localStorage.setItem('empower_userId', result.userId);
+                    localStorage.setItem('empower_username', result.username);
+                    localStorage.setItem('empower_name', result.name);
+
                     // Redirect to recommendations page
-                    window.location.href = `/profile/recommendations.html?userId=${result.data.userId}`;
+                    window.location.href = `http://localhost:8081/profile/recommendations.html?userId=${result.userId}`;
                 } else {
-                    showError(result.error || 'No account found with this email. Please take the survey first.');
+                    showError(result.error || 'Username not found. Please check your username or take the survey.');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Access My Recommendations';
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 showError('An error occurred. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Access My Recommendations';
