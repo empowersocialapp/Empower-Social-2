@@ -705,8 +705,13 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
       Specific_Interests: interests?.specific || undefined,
       
-      Free_Time_Per_Week: preferences?.freeTime || undefined,
-      Travel_Distance_Willing: preferences?.travelDistance || undefined,
+      // Preferences - only set to undefined if truly missing, not if empty string
+      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0 
+        ? preferences.freeTime.trim() 
+        : (preferences?.freeTime || undefined),
+      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0 
+        ? preferences.travelDistance.trim() 
+        : (preferences?.travelDistance || undefined),
       Pref_Indoor: preferences?.indoor || false,
       Pref_Outdoor: preferences?.outdoor || false,
       Pref_Physical_Active: preferences?.physical || false,
