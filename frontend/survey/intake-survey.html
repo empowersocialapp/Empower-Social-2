@@ -2090,12 +2090,26 @@
             }
         }
 
-        // Form submission handler
-        document.getElementById('intakeForm').addEventListener('submit', async function(e) {
+        // Form submission handler - wait for DOM to be ready
+        function setupFormSubmission() {
+            const form = document.getElementById('intakeForm');
+            if (!form) {
+                console.error('Form not found! Retrying...');
+                setTimeout(setupFormSubmission, 100);
+                return;
+            }
+            
+            form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            console.log('Form submission started');
             
             // Get submit button and disable it
             const submitButton = e.target.querySelector('button[type="submit"]');
+            if (!submitButton) {
+                console.error('Submit button not found!');
+                alert('Error: Submit button not found. Please refresh the page.');
+                return;
+            }
             const originalButtonText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
@@ -2239,6 +2253,8 @@
                 
                 // Submit to backend API
                 const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
+                console.log('Using API_BASE_URL:', API_BASE_URL);
+                console.log('Submitting to:', `${API_BASE_URL}/api/submit-survey`);
                 
                 const response = await fetch(`${API_BASE_URL}/api/submit-survey`, {
                     method: 'POST',
@@ -2263,8 +2279,8 @@
                     // Hide loading spinner
                     hideLoadingSpinner();
 
-                    // Redirect to match page (single-match feedback system)
-                    window.location.href = 'http://localhost:8081/profile/recommendations.html?userId=' + result.userId;
+                    // Redirect to recommendations page
+                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}`;
                 } else {
                     throw new Error(result.error || 'Failed to submit survey');
                 }
@@ -2294,7 +2310,15 @@
                 submitButton.disabled = false;
                 submitButton.textContent = originalButtonText;
             }
-        });
+            });
+        }
+        
+        // Initialize form submission handler when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupFormSubmission);
+        } else {
+            setupFormSubmission();
+        }
 
         // Recommendations parsing and display functions have been moved to /assets/js/recommendations.js
         // Survey now redirects to /profile/recommendations.html after submission
