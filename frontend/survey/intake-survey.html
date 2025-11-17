@@ -2471,19 +2471,24 @@
                                 const firstKey = Object.keys(categoryMap).find(k => categoryMap[k] === firstCategory) || firstCategory;
                                 if (firstKey) {
                                     generateSpecificInterests();
+                                    
+                                    // Pre-select specific interests (parse comma-separated string)
+                                    setTimeout(() => {
+                                        // First, uncheck all checkboxes
+                                        document.querySelectorAll('input[name="interests"]').forEach(checkbox => {
+                                            checkbox.checked = false;
+                                        });
+                                        
+                                        // Then check only the saved ones
+                                        if (data.interests.specific) {
+                                            const interestsList = data.interests.specific.split(',').map(i => i.trim());
+                                            interestsList.forEach(interest => {
+                                                const checkbox = document.querySelector(`input[name="interests"][value="${interest}"]`);
+                                                if (checkbox) checkbox.checked = true;
+                                            });
+                                        }
+                                    }, 500);
                                 }
-                            }
-                            
-                            // Pre-select specific interests (parse comma-separated string)
-                            setTimeout(() => {
-                                if (data.interests.specific) {
-                                    const interestsList = data.interests.specific.split(',').map(i => i.trim());
-                                    interestsList.forEach(interest => {
-                                        const checkbox = document.querySelector(`input[name="interests"][value="${interest}"]`);
-                                        if (checkbox) checkbox.checked = true;
-                                    });
-                                }
-                            }, 500);
                         }
                     }, 100);
                     
