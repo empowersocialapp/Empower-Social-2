@@ -807,6 +807,8 @@
             }
         }
     </style>
+    <!-- API Configuration (must load before other scripts) -->
+    <script src="../config.js"></script>
 </head>
 <body>
     <div class="header">
@@ -1659,7 +1661,7 @@
             hideLoginError();
 
             try {
-                const API_BASE_URL = 'http://localhost:3000';
+                const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
                 const response = await fetch(`${API_BASE_URL}/api/login`, {
                     method: 'POST',
                     headers: {
@@ -1677,7 +1679,7 @@
                     localStorage.setItem('empower_name', result.name);
 
                     // Redirect to recommendations page
-                    window.location.href = `http://localhost:8081/profile/recommendations.html?userId=${result.userId}`;
+                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}`;
                 } else {
                     showLoginError(result.error || 'Username not found. Please check your username or take the survey.');
                     loginButton.disabled = false;
@@ -2236,7 +2238,7 @@
                 console.log('Submitting survey data:', surveyData);
                 
                 // Submit to backend API
-                const API_BASE_URL = 'http://localhost:3000';
+                const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
                 
                 const response = await fetch(`${API_BASE_URL}/api/submit-survey`, {
                     method: 'POST',
@@ -2321,7 +2323,7 @@
         async function loadExistingSurveyData(userId) {
             try {
                 showLoadingSpinner();
-                const API_BASE_URL = 'http://localhost:3000';
+                const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
                 const response = await fetch(`${API_BASE_URL}/api/survey/${userId}`);
                 
                 if (!response.ok) {

@@ -6,7 +6,32 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+// CORS configuration - allow requests from Amplify and localhost
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow Amplify domains
+    if (origin.includes('amplifyapp.com') || origin.includes('amplify.aws')) {
+      return callback(null, true);
+    }
+    
+    // Allow custom domains (add your production domain here)
+    // if (origin.includes('yourdomain.com')) {
+    //   return callback(null, true);
+    // }
+    
+    callback(null, true); // Allow all origins for now - restrict in production
+  },
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

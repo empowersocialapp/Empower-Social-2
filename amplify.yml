@@ -1,0 +1,19 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Preparing frontend deployment..."
+    build:
+      commands:
+        - echo "Frontend is static HTML, no build step needed"
+    postBuild:
+      commands:
+        - echo "Build completed successfully"
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - '**/*'
+  cache:
+    paths: []
+

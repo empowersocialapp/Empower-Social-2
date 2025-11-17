@@ -290,7 +290,7 @@ function displayRecommendations(recommendations, userId, userName = null) {
                 ${escapeHtml(recommendations.substring(0, 5000))}
             </div>
             <div style="margin-top: 40px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='http://localhost:8081/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
+                ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='${window.location.origin}/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
                 ${userId ? `<button type="button" class="btn-secondary" onclick="regenerateRecommendations('${userId}')">Get New Recommendations</button>` : ''}
                 <button type="button" class="btn-secondary" onclick="window.location.href='/profile/login.html'" style="border-color: #667eea; color: #667eea;">Login as Different User</button>
             </div>
@@ -383,7 +383,7 @@ async function regenerateRecommendations(userId) {
     container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p style="color: #666; font-size: 16px;">Generating new recommendations...</p></div>';
     
     try {
-        const API_BASE_URL = 'http://localhost:3000';
+        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
         const response = await fetch(`${API_BASE_URL}/api/recommendations/${userId}/regenerate`, {
             method: 'POST',
             headers: {
@@ -422,7 +422,7 @@ async function loadRecommendations(userId) {
     container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading your recommendations...</p></div>';
     
     try {
-        const API_BASE_URL = 'http://localhost:3000';
+        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
         const response = await fetch(`${API_BASE_URL}/api/recommendations/${userId}`);
         
         const result = await response.json();

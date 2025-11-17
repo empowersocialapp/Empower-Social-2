@@ -146,6 +146,8 @@
             text-decoration: underline;
         }
     </style>
+    <!-- API Configuration (must load before other scripts) -->
+    <script src="../config.js"></script>
 </head>
 <body>
     <div class="login-container">
@@ -200,7 +202,7 @@
             hideError();
 
             try {
-                const API_BASE_URL = 'http://localhost:3000';
+                const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
                 const response = await fetch(`${API_BASE_URL}/api/login`, {
                     method: 'POST',
                     headers: {
@@ -218,7 +220,7 @@
                     localStorage.setItem('empower_name', result.name);
 
                     // Redirect to recommendations page
-                    window.location.href = `http://localhost:8081/profile/recommendations.html?userId=${result.userId}`;
+                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}`;
                 } else {
                     showError(result.error || 'Username not found. Please check your username or take the survey.');
                     submitBtn.disabled = false;

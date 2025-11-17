@@ -25,3 +25,7 @@ yarn-debug.log*
 
 # Test coverage
 coverage/
+
+# Amplify
+amplify/
+.amplify-hosting/
