@@ -102,10 +102,10 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
         Conscientiousness_Category: calculatedScores.fields?.Conscientiousness_Category || 'Medium',
         Openness_Raw: calculatedScores.fields?.Openness_Raw || 0,
         Openness_Category: calculatedScores.fields?.Openness_Category || 'Medium',
-        Primary_Motivation: calculatedScores.fields.Primary_Motivation || 'Social',
-        Intrinsic_Motivation: calculatedScores.fields.Intrinsic_Motivation || 0,
-        Social_Motivation: calculatedScores.fields.Social_Motivation || 0,
-        Achievement_Motivation: calculatedScores.fields.Achievement_Motivation || 0
+        Primary_Motivation: calculatedScores.fields?.Primary_Motivation || 'Social',
+        Intrinsic_Motivation: calculatedScores.fields?.Intrinsic_Motivation || 0,
+        Social_Motivation: calculatedScores.fields?.Social_Motivation || 0,
+        Achievement_Motivation: calculatedScores.fields?.Achievement_Motivation || 0
       },
       location: locationStr
     };
