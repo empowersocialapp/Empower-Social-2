@@ -27,8 +27,10 @@ function validateSurveyData(data) {
     return { valid: false, error: 'Username is required (minimum 3 characters)' };
   }
 
-  if (!data.email || typeof data.email !== 'string' || !data.email.includes('@')) {
-    return { valid: false, error: 'Valid email is required' };
+  // Email validation with regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!data.email || typeof data.email !== 'string' || !emailRegex.test(data.email.trim())) {
+    return { valid: false, error: 'Valid email is required (format: name@domain.com)' };
   }
 
   if (!data.age || typeof data.age !== 'number' || data.age < 1 || data.age > 120) {
@@ -39,8 +41,10 @@ function validateSurveyData(data) {
     return { valid: false, error: 'Gender is required' };
   }
 
-  if (!data.zipcode || typeof data.zipcode !== 'string' || data.zipcode.trim().length === 0) {
-    return { valid: false, error: 'Zipcode is required' };
+  // Zipcode validation - must be 5 digits
+  const zipcodeRegex = /^\d{5}$/;
+  if (!data.zipcode || typeof data.zipcode !== 'string' || !zipcodeRegex.test(data.zipcode.trim())) {
+    return { valid: false, error: 'Valid zipcode is required (5 digits)' };
   }
   
   // Validate personality scores (Q1, Q6, Q3, Q8, Q5, Q10 - 1-7 scale)
@@ -67,6 +71,11 @@ function validateSurveyData(data) {
     if (score === undefined || score === null || typeof score !== 'number' || score < 1 || score > 5) {
       return { valid: false, error: `Motivation question ${m} must be a number between 1 and 5` };
     }
+  }
+  
+  // Validate at least one interest category is selected
+  if (!data.interests || !data.interests.categories || !Array.isArray(data.interests.categories) || data.interests.categories.length === 0) {
+    return { valid: false, error: 'Please select at least one interest category' };
   }
   
   return { valid: true };

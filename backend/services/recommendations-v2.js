@@ -60,42 +60,48 @@ async function generateRecommendationsV2(userId, surveyResponseId = null, calcul
       calculatedScores = scoreRecords[0];
     }
     
-    // 4. Get location from zipcode
-    const location = await geocodeZipcode(user.fields.Zipcode);
+    // 4. Get location from zipcode (with null check)
+    const zipcode = user.fields?.Zipcode;
+    if (!zipcode) {
+      console.warn('No zipcode found for user, using default location');
+      return { success: false, error: 'User zipcode is required for recommendations' };
+    }
+    
+    const location = await geocodeZipcode(zipcode);
     const city = location?.city || 'Unknown';
     const state = location?.state || 'Unknown';
     const locationStr = `${city}, ${state}`;
     
-    // 5. Build user profile for conceptual generation
+    // 5. Build user profile for conceptual generation (with null checks)
     const userProfile = {
       user: {
-        Name: user.fields.Name,
-        Age: user.fields.Age,
-        Gender: user.fields.Gender,
-        Zipcode: user.fields.Zipcode
+        Name: user.fields?.Name || 'User',
+        Age: user.fields?.Age || 25,
+        Gender: user.fields?.Gender || 'Not specified',
+        Zipcode: zipcode
       },
       survey: {
-        Interest_Categories: surveyResponse.fields.Interest_Categories || [],
-        Specific_Interests: surveyResponse.fields.Specific_Interests || '',
-        Close_Friends_Count: surveyResponse.fields.Close_Friends_Count || '',
-        Social_Satisfaction: surveyResponse.fields.Social_Satisfaction || '',
-        Loneliness_Frequency: surveyResponse.fields.Loneliness_Frequency || '',
-        Free_Time_Per_Week: surveyResponse.fields.Free_Time_Per_Week || '',
-        Travel_Distance_Willing: surveyResponse.fields.Travel_Distance_Willing || '',
-        Affinity_Faith_Based: surveyResponse.fields.Affinity_Faith_Based || [],
-        Affinity_LGBTQ: surveyResponse.fields.Affinity_LGBTQ || [],
-        Affinity_Cultural_Ethnic: surveyResponse.fields.Affinity_Cultural_Ethnic || [],
-        Affinity_Womens: surveyResponse.fields.Affinity_Womens || [],
-        Affinity_Young_Prof: surveyResponse.fields.Affinity_Young_Prof || [],
-        Affinity_International: surveyResponse.fields.Affinity_International || []
+        Interest_Categories: surveyResponse.fields?.Interest_Categories || [],
+        Specific_Interests: surveyResponse.fields?.Specific_Interests || '',
+        Close_Friends_Count: surveyResponse.fields?.Close_Friends_Count || '',
+        Social_Satisfaction: surveyResponse.fields?.Social_Satisfaction || '',
+        Loneliness_Frequency: surveyResponse.fields?.Loneliness_Frequency || '',
+        Free_Time_Per_Week: surveyResponse.fields?.Free_Time_Per_Week || '',
+        Travel_Distance_Willing: surveyResponse.fields?.Travel_Distance_Willing || '',
+        Affinity_Faith_Based: surveyResponse.fields?.Affinity_Faith_Based || [],
+        Affinity_LGBTQ: surveyResponse.fields?.Affinity_LGBTQ || [],
+        Affinity_Cultural_Ethnic: surveyResponse.fields?.Affinity_Cultural_Ethnic || [],
+        Affinity_Womens: surveyResponse.fields?.Affinity_Womens || [],
+        Affinity_Young_Prof: surveyResponse.fields?.Affinity_Young_Prof || [],
+        Affinity_International: surveyResponse.fields?.Affinity_International || []
       },
       scores: {
-        Extraversion_Raw: calculatedScores.fields.Extraversion_Raw || 0,
-        Extraversion_Category: calculatedScores.fields.Extraversion_Category || 'Medium',
-        Conscientiousness_Raw: calculatedScores.fields.Conscientiousness_Raw || 0,
-        Conscientiousness_Category: calculatedScores.fields.Conscientiousness_Category || 'Medium',
-        Openness_Raw: calculatedScores.fields.Openness_Raw || 0,
-        Openness_Category: calculatedScores.fields.Openness_Category || 'Medium',
+        Extraversion_Raw: calculatedScores.fields?.Extraversion_Raw || 0,
+        Extraversion_Category: calculatedScores.fields?.Extraversion_Category || 'Medium',
+        Conscientiousness_Raw: calculatedScores.fields?.Conscientiousness_Raw || 0,
+        Conscientiousness_Category: calculatedScores.fields?.Conscientiousness_Category || 'Medium',
+        Openness_Raw: calculatedScores.fields?.Openness_Raw || 0,
+        Openness_Category: calculatedScores.fields?.Openness_Category || 'Medium',
         Primary_Motivation: calculatedScores.fields.Primary_Motivation || 'Social',
         Intrinsic_Motivation: calculatedScores.fields.Intrinsic_Motivation || 0,
         Social_Motivation: calculatedScores.fields.Social_Motivation || 0,

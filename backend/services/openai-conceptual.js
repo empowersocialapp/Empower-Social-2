@@ -22,7 +22,13 @@ async function generateConceptualRecommendations(userProfile, recommendationsCou
     const prompt = buildConceptualPrompt(user, survey, scores, location, recommendationsCount);
     
     // Use gpt-4o for concept generation (faster than gpt-4-turbo, still high quality)
-    const completion = await openai.chat.completions.create({
+    // Add timeout to prevent hanging (60 seconds max)
+    const timeoutMs = 60000; // 60 seconds
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('OpenAI API timeout after 60 seconds')), timeoutMs)
+    );
+    
+    const apiCallPromise = openai.chat.completions.create({
       model: process.env.OPENAI_CONCEPT_MODEL || 'gpt-4o',
       messages: [
         {
@@ -38,6 +44,8 @@ async function generateConceptualRecommendations(userProfile, recommendationsCou
       response_format: { type: 'json_object' },
       max_tokens: 2500 // Slightly reduced for speed
     });
+    
+    const completion = await Promise.race([apiCallPromise, timeoutPromise]);
     
     const responseText = completion.choices[0].message.content;
     const concepts = JSON.parse(responseText);

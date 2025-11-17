@@ -31,6 +31,12 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
 
     // 1. Fetch user data
     const user = await base('Users').find(userId);
+    if (!user || !user.fields) {
+      return {
+        success: false,
+        error: 'User not found or user data is invalid'
+      };
+    }
     
     // 2. Get survey response (use provided ID or query for latest)
     let surveyResponse;
@@ -53,6 +59,13 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       
       surveyResponse = surveyResponses[0];
       surveyResponseId = surveyResponse.id;
+    }
+    
+    if (!surveyResponse || !surveyResponse.fields) {
+      return {
+        success: false,
+        error: 'Survey response data is invalid'
+      };
     }
     
     // 3. Get calculated scores (use provided ID or query for latest)
@@ -78,10 +91,25 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       calculatedScoresId = scores.id;
     }
     
+    if (!scores || !scores.fields) {
+      return {
+        success: false,
+        error: 'Calculated scores data is invalid'
+      };
+    }
+    
     // 4. Fetch real events from APIs (with timeout to prevent long waits)
     console.log('Fetching real events...');
+    const zipcode = user.fields?.Zipcode;
+    if (!zipcode) {
+      return {
+        success: false,
+        error: 'User zipcode is required for recommendations'
+      };
+    }
+    
     const userProfile = {
-      zipcode: user.fields.Zipcode,
+      zipcode: zipcode,
       interests: {
         categories: surveyResponse.fields.Interest_Categories || [],
         specific: surveyResponse.fields.Specific_Interests || ''
