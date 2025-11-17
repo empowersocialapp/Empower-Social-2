@@ -204,8 +204,8 @@ router.post('/submit-survey', async (req, res) => {
       
       let recommendationsResult;
       try {
-        console.log('Attempting conceptual recommendation system for survey update...');
-        recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId);
+        console.log('Attempting conceptual recommendation system for survey update (bypassing cache)...');
+        recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId, null, true);
         
         if (!recommendationsResult.success) {
           console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);

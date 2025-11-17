@@ -11,9 +11,10 @@ const conceptCache = new Map();
  * @param {string} [surveyResponseId] - Optional: Airtable Survey_Response record ID
  * @param {string} [calculatedScoresId] - Optional: Airtable Calculated_Scores record ID
  * @param {number} [numRecommendations] - Optional: Number of recommendations (default: 5)
+ * @param {boolean} [bypassCache] - Optional: If true, bypass cache and generate new recommendations
  * @returns {Promise<Object>} {success: boolean, data: {...} | error: string}
  */
-async function generateRecommendationsV2(userId, surveyResponseId = null, calculatedScoresId = null, numRecommendations = null) {
+async function generateRecommendationsV2(userId, surveyResponseId = null, calculatedScoresId = null, numRecommendations = null, bypassCache = false) {
   try {
     const isTestMode = process.env.TEST_MODE === 'true';
     const recommendationsCount = isTestMode ? 1 : (numRecommendations || parseInt(process.env.RECOMMENDATIONS_COUNT) || 5);

@@ -394,8 +394,15 @@ async function regenerateRecommendations(userId) {
         const result = await response.json();
         
         if (result.success) {
-            // Display new recommendations
-            displayRecommendations(result.recommendations, userId);
+            // Handle both string and array formats
+            const recommendations = result.recommendations || result.data?.recommendations;
+            if (recommendations) {
+                displayRecommendations(recommendations, userId);
+            } else {
+                console.error('Unexpected response format:', result);
+                alert('Recommendations were generated but format is unexpected. Please refresh the page.');
+                loadRecommendations(userId);
+            }
         } else {
             alert(`We encountered an error: ${result.error}`);
             // Try to reload existing recommendations

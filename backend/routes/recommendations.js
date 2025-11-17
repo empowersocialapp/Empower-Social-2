@@ -293,9 +293,10 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
     let method = 'conceptual_only';
     
     // Try v2 conceptual system first, fallback to legacy if it fails
+    // Bypass cache when explicitly regenerating
     try {
-      console.log('Attempting conceptual recommendation system...');
-      recommendationsResult = await generateRecommendationsV2(userId, surveyResponseIdToUse, calculatedScoresIdToUse);
+      console.log('Attempting conceptual recommendation system (bypassing cache)...');
+      recommendationsResult = await generateRecommendationsV2(userId, surveyResponseIdToUse, calculatedScoresIdToUse, null, true);
       
       if (!recommendationsResult.success) {
         console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
