@@ -234,17 +234,43 @@ async function createSurveyResponse(surveyData, userId) {
     }
 
     // Map Social_Satisfaction - convert frontend format to Airtable format
-    // Frontend sends: "Neutral (4)", "Satisfied (6)", etc.
-    // Airtable expects: "Neutral", "Satisfied", etc. (without numbers)
+    // Frontend sends: "Neutral (4)", "Satisfied (6)", etc. or just numbers 1-7
+    // Extract number and map to Airtable options
     let socialSatisfaction = social?.satisfaction;
     if (socialSatisfaction) {
-      if (typeof socialSatisfaction !== 'string') {
-        socialSatisfaction = String(socialSatisfaction);
+      let satisfactionValue;
+      
+      // Extract number from string like "Neutral (4)" or just use the number if it's already numeric
+      if (typeof socialSatisfaction === 'string') {
+        const match = socialSatisfaction.match(/\((\d+)\)/);
+        if (match) {
+          satisfactionValue = parseInt(match[1]);
+        } else {
+          // Try to parse as number
+          satisfactionValue = parseInt(socialSatisfaction);
+        }
+      } else {
+        satisfactionValue = parseInt(socialSatisfaction);
       }
-      // Remove the number in parentheses if present (e.g., "Neutral (4)" -> "Neutral")
-      socialSatisfaction = socialSatisfaction.replace(/\s*\(\d+\)\s*$/, '').trim();
-      if (socialSatisfaction.trim().length === 0) {
-        socialSatisfaction = undefined;
+      
+      // Map 1-7 scale to Airtable options (common satisfaction scale)
+      if (!isNaN(satisfactionValue) && satisfactionValue >= 1 && satisfactionValue <= 7) {
+        const satisfactionMap = {
+          1: 'Very Dissatisfied',
+          2: 'Dissatisfied',
+          3: 'Somewhat Dissatisfied',
+          4: 'Neutral',
+          5: 'Somewhat Satisfied',
+          6: 'Satisfied',
+          7: 'Very Satisfied'
+        };
+        socialSatisfaction = satisfactionMap[satisfactionValue];
+      } else {
+        // Fallback: try to extract label from string
+        socialSatisfaction = String(socialSatisfaction).replace(/\s*\(\d+\)\s*$/, '').trim();
+        if (socialSatisfaction.trim().length === 0) {
+          socialSatisfaction = undefined;
+        }
       }
     }
 
@@ -544,16 +570,41 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       closeFriendsCount = undefined;
     }
 
-    // Map Social_Satisfaction - convert frontend format to Airtable format
+    // Map Social_Satisfaction - convert frontend format to Airtable format (same as createSurveyResponse)
     let socialSatisfaction = social?.satisfaction;
     if (socialSatisfaction) {
-      if (typeof socialSatisfaction !== 'string') {
-        socialSatisfaction = String(socialSatisfaction);
+      let satisfactionValue;
+      
+      // Extract number from string like "Neutral (4)" or just use the number if it's already numeric
+      if (typeof socialSatisfaction === 'string') {
+        const match = socialSatisfaction.match(/\((\d+)\)/);
+        if (match) {
+          satisfactionValue = parseInt(match[1]);
+        } else {
+          satisfactionValue = parseInt(socialSatisfaction);
+        }
+      } else {
+        satisfactionValue = parseInt(socialSatisfaction);
       }
-      // Remove the number in parentheses if present
-      socialSatisfaction = socialSatisfaction.replace(/\s*\(\d+\)\s*$/, '').trim();
-      if (socialSatisfaction.trim().length === 0) {
-        socialSatisfaction = undefined;
+      
+      // Map 1-7 scale to Airtable options
+      if (!isNaN(satisfactionValue) && satisfactionValue >= 1 && satisfactionValue <= 7) {
+        const satisfactionMap = {
+          1: 'Very Dissatisfied',
+          2: 'Dissatisfied',
+          3: 'Somewhat Dissatisfied',
+          4: 'Neutral',
+          5: 'Somewhat Satisfied',
+          6: 'Satisfied',
+          7: 'Very Satisfied'
+        };
+        socialSatisfaction = satisfactionMap[satisfactionValue];
+      } else {
+        // Fallback: try to extract label from string
+        socialSatisfaction = String(socialSatisfaction).replace(/\s*\(\d+\)\s*$/, '').trim();
+        if (socialSatisfaction.trim().length === 0) {
+          socialSatisfaction = undefined;
+        }
       }
     }
 
