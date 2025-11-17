@@ -14,7 +14,7 @@ This guide will help you deploy the Empower Social application to AWS Amplify.
 
 This is the simplest approach:
 - **Frontend**: Deploy static files to Amplify
-- **Backend**: Deploy to Railway, Render, or AWS Lambda
+- **Backend**: Deploy to Render (recommended), Railway, or AWS Lambda
 
 ### Option 2: Full Stack on Amplify
 
@@ -85,12 +85,15 @@ REACT_APP_API_URL=https://your-backend-url.com
 
 ## Step 3: Deploy Backend
 
-### Option A: Deploy to Railway (Easiest)
+### Option A: Deploy to Render (Recommended - Free Tier Available)
 
-1. Go to [Railway.app](https://railway.app)
-2. Create new project → Deploy from GitHub
-3. Select `Empower-Social-2` repository
-4. Set root directory: `backend`
+1. Go to [Render.com](https://render.com)
+2. Create new **Web Service**
+3. Connect GitHub repository (`Empower-Social-2`)
+4. Settings:
+   - **Root Directory**: `backend`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
 5. Add environment variables:
    ```
    AIRTABLE_API_KEY=your_key
@@ -99,19 +102,20 @@ REACT_APP_API_URL=https://your-backend-url.com
    PORT=3000
    NODE_ENV=production
    ```
+6. Render will auto-deploy and give you a URL like: `https://your-app.onrender.com`
+
+**Note:** Render's free tier provides 750 hours/month, which is enough to run a single service 24/7.
+
+### Option B: Deploy to Railway (Alternative)
+
+**Note:** Railway's free plan may be limited to databases only. Render is recommended for hosting Node.js applications on the free tier.
+
+1. Go to [Railway.app](https://railway.app)
+2. Create new project → Deploy from GitHub
+3. Select `Empower-Social-2` repository
+4. Set root directory: `backend`
+5. Add environment variables (same as Render)
 6. Railway will auto-deploy and give you a URL like: `https://your-app.railway.app`
-
-### Option B: Deploy to Render
-
-1. Go to [Render.com](https://render.com)
-2. Create new **Web Service**
-3. Connect GitHub repository
-4. Settings:
-   - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-5. Add environment variables (same as Railway)
-6. Deploy
 
 ### Option C: AWS Lambda (Advanced)
 
@@ -129,9 +133,9 @@ If you want everything on AWS, you can convert the Express app to Lambda functio
 // In frontend/config.js, update the Amplify section:
 } else if (isAmplify) {
     // Replace with your actual backend URL
-    API_BASE_URL = 'https://your-backend.railway.app';
-    // or
     API_BASE_URL = 'https://your-backend.onrender.com';
+    // or
+    API_BASE_URL = 'https://your-backend.railway.app';
 }
 ```
 
@@ -170,7 +174,7 @@ app.use(cors(corsOptions));
 
 ## Step 6: Environment Variables Checklist
 
-### Backend Environment Variables (Railway/Render/Lambda):
+### Backend Environment Variables (Render/Railway/Lambda):
 
 ✅ `AIRTABLE_API_KEY` - Your Airtable API key  
 ✅ `AIRTABLE_BASE_ID` - Your Airtable base ID  
@@ -230,9 +234,10 @@ app.use(cors(corsOptions));
 - Paid: ~$0.01 per build minute after free tier
 - **Estimated cost**: $0-5/month for small apps
 
-**Railway/Render:**
-- Free tier available (with limitations)
-- Paid: ~$5-20/month for production
+**Render:**
+- Free tier: 750 hours/month (enough for 24/7 on single service)
+- Paid: ~$7-25/month for production (if needed)
+- **Note:** Railway's free plan may be limited to databases only
 
 **Total estimated cost**: $5-25/month for full deployment
 
@@ -241,7 +246,7 @@ app.use(cors(corsOptions));
 ## Next Steps
 
 1. ✅ Deploy frontend to Amplify
-2. ✅ Deploy backend to Railway/Render
+2. ✅ Deploy backend to Render (or Railway)
 3. ✅ Update API URLs
 4. ✅ Test end-to-end flow
 5. ✅ Set up custom domain (optional)
@@ -254,7 +259,7 @@ app.use(cors(corsOptions));
 
 For issues:
 - Check Amplify build logs
-- Check backend logs (Railway/Render dashboard)
+- Check backend logs (Render/Railway dashboard)
 - Review browser console for errors
 - Verify all environment variables are set correctly
 
