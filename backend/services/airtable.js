@@ -729,13 +729,27 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
     };
 
     // Remove undefined, null, empty string, and empty array values
+    // Multi-select fields can have empty arrays (Airtable handles this)
+    const multiSelectFields = ['Affinity_Faith_Based', 'Affinity_LGBTQ', 'Affinity_Cultural_Ethnic', 
+                                 'Affinity_Womens', 'Affinity_Young_Prof', 'Affinity_International',
+                                 'Looking_For', 'Interest_Categories'];
+    
     Object.keys(fields).forEach(key => {
-      if (fields[key] === undefined || fields[key] === null || fields[key] === '') {
+      const value = fields[key];
+      if (value === undefined || value === null || value === '') {
         delete fields[key];
       }
-      // Also remove empty arrays for select fields
-      if (Array.isArray(fields[key]) && fields[key].length === 0) {
-        delete fields[key];
+      // Handle arrays
+      if (Array.isArray(value)) {
+        if (value.length === 0) {
+          // Keep empty arrays for multi-select fields (Airtable can handle them)
+          if (!multiSelectFields.includes(key)) {
+            delete fields[key];
+          }
+        } else if (value.every(v => !v || (typeof v === 'string' && v.trim().length === 0))) {
+          // Remove arrays containing only empty strings or whitespace
+          delete fields[key];
+        }
       }
     });
 
