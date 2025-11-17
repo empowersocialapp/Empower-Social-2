@@ -828,7 +828,7 @@
             <div class="progress-text" id="progressText">Page 1 of 8</div>
         </div>
 
-        <form id="intakeForm">
+        <form id="intakeForm" novalidate>
             <!-- Welcome Page -->
             <div class="survey-page active" id="pageWelcome">
                 <div class="welcome-hero">
@@ -2103,6 +2103,13 @@
             e.preventDefault();
             console.log('Form submission started');
             
+            // Check form validity manually
+            if (!form.checkValidity()) {
+                console.log('Form validation failed');
+                form.reportValidity();
+                return;
+            }
+            
             // Get submit button and disable it
             const submitButton = e.target.querySelector('button[type="submit"]');
             if (!submitButton) {
@@ -2323,10 +2330,24 @@
         // Recommendations parsing and display functions have been moved to /assets/js/recommendations.js
         // Survey now redirects to /profile/recommendations.html after submission
 
-        // Zip code validation
-        document.getElementById('zipcode').addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 5);
-        });
+        // Zip code validation - wait for DOM to be ready
+        function setupZipcodeValidation() {
+            const zipcodeInput = document.getElementById('zipcode');
+            if (!zipcodeInput) {
+                setTimeout(setupZipcodeValidation, 100);
+                return;
+            }
+            zipcodeInput.addEventListener('input', function(e) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 5);
+            });
+        }
+        
+        // Initialize zipcode validation when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupZipcodeValidation);
+        } else {
+            setupZipcodeValidation();
+        }
 
         // Initialize broad categories on page load
         window.addEventListener('DOMContentLoaded', function() {
