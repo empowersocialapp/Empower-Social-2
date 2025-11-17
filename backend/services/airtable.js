@@ -276,26 +276,42 @@ async function createSurveyResponse(surveyData, userId) {
 
     // Map Loneliness_Frequency - convert frontend format to Airtable format
     // Frontend sends: "Never (1)", "Rarely (2)", "Sometimes (3)", "Often (4)", "Very Often (5)"
-    // Airtable expects: "Never", "Rarely", "Sometimes", "Often", "Very Often" (without numbers)
+    // Airtable expects: "Never (1)", "Rarely (2)", "Sometimes (3)", "Often (4)", "Always (5)" (with numbers)
+    // Note: Airtable uses "Always" not "Very Often" for value 5
     let lonelinessFrequency = social?.loneliness;
     if (lonelinessFrequency) {
       if (typeof lonelinessFrequency !== 'string') {
         lonelinessFrequency = String(lonelinessFrequency);
       }
-      // Remove the number in parentheses if present (e.g., "Very Often (5)" -> "Very Often")
-      lonelinessFrequency = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
-      // Map to Airtable options (remove any remaining formatting)
-      const lonelinessMap = {
-        'Never': 'Never',
-        'Rarely': 'Rarely',
-        'Sometimes': 'Sometimes',
-        'Often': 'Often',
-        'Very Often': 'Very Often'
-      };
-      // Check if the value matches a known option
-      if (lonelinessMap[lonelinessFrequency]) {
-        lonelinessFrequency = lonelinessMap[lonelinessFrequency];
-      } else if (lonelinessFrequency.trim().length === 0) {
+      
+      // Extract the number from format like "Very Often (5)" or "Always (5)"
+      const match = lonelinessFrequency.match(/\((\d+)\)/);
+      if (match) {
+        const value = parseInt(match[1]);
+        // Map to Airtable options (Airtable includes the number in parentheses)
+        const lonelinessMap = {
+          1: 'Never (1)',
+          2: 'Rarely (2)',
+          3: 'Sometimes (3)',
+          4: 'Often (4)',
+          5: 'Always (5)'  // Airtable uses "Always" not "Very Often"
+        };
+        lonelinessFrequency = lonelinessMap[value] || lonelinessFrequency;
+      } else {
+        // If no number found, try to map the label
+        const label = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
+        const labelMap = {
+          'Never': 'Never (1)',
+          'Rarely': 'Rarely (2)',
+          'Sometimes': 'Sometimes (3)',
+          'Often': 'Often (4)',
+          'Very Often': 'Always (5)',  // Map "Very Often" to "Always (5)"
+          'Always': 'Always (5)'
+        };
+        lonelinessFrequency = labelMap[label] || lonelinessFrequency;
+      }
+      
+      if (lonelinessFrequency.trim().length === 0) {
         lonelinessFrequency = undefined;
       }
     }
@@ -608,25 +624,41 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       }
     }
 
-    // Map Loneliness_Frequency - convert frontend format to Airtable format
+    // Map Loneliness_Frequency - convert frontend format to Airtable format (same as createSurveyResponse)
     let lonelinessFrequency = social?.loneliness;
     if (lonelinessFrequency) {
       if (typeof lonelinessFrequency !== 'string') {
         lonelinessFrequency = String(lonelinessFrequency);
       }
-      // Remove the number in parentheses if present
-      lonelinessFrequency = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
-      // Map to Airtable options
-      const lonelinessMap = {
-        'Never': 'Never',
-        'Rarely': 'Rarely',
-        'Sometimes': 'Sometimes',
-        'Often': 'Often',
-        'Very Often': 'Very Often'
-      };
-      if (lonelinessMap[lonelinessFrequency]) {
-        lonelinessFrequency = lonelinessMap[lonelinessFrequency];
-      } else if (lonelinessFrequency.trim().length === 0) {
+      
+      // Extract the number from format like "Very Often (5)" or "Always (5)"
+      const match = lonelinessFrequency.match(/\((\d+)\)/);
+      if (match) {
+        const value = parseInt(match[1]);
+        // Map to Airtable options (Airtable includes the number in parentheses)
+        const lonelinessMap = {
+          1: 'Never (1)',
+          2: 'Rarely (2)',
+          3: 'Sometimes (3)',
+          4: 'Often (4)',
+          5: 'Always (5)'  // Airtable uses "Always" not "Very Often"
+        };
+        lonelinessFrequency = lonelinessMap[value] || lonelinessFrequency;
+      } else {
+        // If no number found, try to map the label
+        const label = lonelinessFrequency.replace(/\s*\(\d+\)\s*$/, '').trim();
+        const labelMap = {
+          'Never': 'Never (1)',
+          'Rarely': 'Rarely (2)',
+          'Sometimes': 'Sometimes (3)',
+          'Often': 'Often (4)',
+          'Very Often': 'Always (5)',  // Map "Very Often" to "Always (5)"
+          'Always': 'Always (5)'
+        };
+        lonelinessFrequency = labelMap[label] || lonelinessFrequency;
+      }
+      
+      if (lonelinessFrequency.trim().length === 0) {
         lonelinessFrequency = undefined;
       }
     }
