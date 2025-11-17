@@ -241,9 +241,19 @@ router.post('/submit-survey', async (req, res) => {
       }
       
       // Conceptual system succeeded
+      const { recommendations, stats } = recommendationsResult.data;
+      
+      // Convert array to string if needed (v2 system returns array)
+      const recommendationsText = Array.isArray(recommendations)
+        ? recommendations.map(r =>
+            `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
+          ).join('\n\n---\n\n')
+        : recommendations;
+      
       return res.status(200).json({
         success: true,
         userId: userId,
+        recommendations: recommendationsText,
         message: 'Survey updated successfully and recommendations regenerated'
       });
     } else {

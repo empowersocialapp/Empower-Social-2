@@ -417,18 +417,30 @@ async function loadRecommendations(userId) {
         return;
     }
     
+    // Check for refresh parameter to force reload
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceRefresh = urlParams.get('refresh') === 'true';
+    
     // Show loading
     const container = document.querySelector('.recommendations-container');
     container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading your recommendations...</p></div>';
     
     try {
+        // Add cache-busting parameter if refresh is requested
+        const cacheBuster = forceRefresh ? `?_t=${Date.now()}` : '';
         const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
-        const response = await fetch(`${API_BASE_URL}/api/recommendations/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/recommendations/${userId}${cacheBuster}`);
         
         const result = await response.json();
         
         if (result.success) {
             displayRecommendations(result.data.recommendations, userId, result.data.userName);
+            
+            // Remove refresh parameter from URL if present
+            if (forceRefresh) {
+                const newUrl = window.location.pathname + `?userId=${userId}`;
+                window.history.replaceState({}, document.title, newUrl);
+            }
         } else {
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px;">

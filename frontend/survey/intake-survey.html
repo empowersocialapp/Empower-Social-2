@@ -2286,8 +2286,9 @@
                     // Hide loading spinner
                     hideLoadingSpinner();
 
-                    // Redirect to recommendations page
-                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}`;
+                    // If recommendations are included (edit mode), add refresh flag to force reload
+                    const refreshParam = result.recommendations ? '&refresh=true' : '';
+                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}${refreshParam}`;
                 } else {
                     throw new Error(result.error || 'Failed to submit survey');
                 }
