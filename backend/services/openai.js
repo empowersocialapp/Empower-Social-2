@@ -159,8 +159,14 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
     // Each recommendation is ~250-300 tokens, so: count * 300 + buffer
     const maxTokens = Math.max(1000, recommendationsCount * 300 + 500);
     
+    // Add timeout to prevent hanging (90 seconds max for legacy system)
+    const timeoutMs = 90000; // 90 seconds
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('OpenAI API timeout after 90 seconds')), timeoutMs)
+    );
+    
     // 6. Send to GPT-4-turbo
-    const completion = await openai.chat.completions.create({
+    const apiCallPromise = openai.chat.completions.create({
       model: 'gpt-4-turbo',
       messages: [
         {
@@ -175,6 +181,8 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       temperature: 0.7,
       max_tokens: maxTokens
     });
+    
+    const completion = await Promise.race([apiCallPromise, timeoutPromise]);
     
     const recommendations = completion.choices[0].message.content;
     
