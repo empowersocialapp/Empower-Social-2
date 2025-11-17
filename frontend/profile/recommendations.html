@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Recommendations - Empower Social</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FF8C42 0%, #FFA566 100%);
+            border-radius: 8px;
+        }
+        
+        .logo h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            color: #FF8C42;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .tagline {
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            margin-left: 52px;
+            margin-top: -8px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+        
+        .recommendations-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .recommendations-header {
+            margin-bottom: 32px;
+        }
+        
+        .recommendations-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            color: #2C2C2C;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .recommendations-header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .btn-primary, .btn-secondary {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #FF8C42 0%, #FFA566 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #e67a35 0%, #FF8C42 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #FF8C42;
+            border: 2px solid #FF8C42;
+        }
+        
+        .btn-secondary:hover {
+            background: #FFF9F0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 140, 66, 0.2);
+            border-top: 4px solid #FF8C42;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <h1>Empower</h1>
+        </div>
+        <p class="tagline">Your Personalized Recommendations</p>
+    </div>
+    
+    <div class="recommendations-container">
+        <!-- Recommendations will be loaded here -->
+    </div>
+    
+    <script src="/assets/js/recommendations.js"></script>
+    <script>
+        // Get userId from URL parameter or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('userId');
+        
+        // If no userId in URL, check localStorage
+        if (!userId) {
+            userId = localStorage.getItem('empower_userId');
+        }
+        
+        // Load recommendations if we have a userId
+        if (userId) {
+            loadRecommendations(userId);
+            // Store in localStorage for future visits
+            localStorage.setItem('empower_userId', userId);
+        } else {
+            // No userId found, show message
+            document.querySelector('.recommendations-container').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <h2 style="font-family: 'Montserrat', sans-serif; font-size: 32px; color: #2C2C2C; margin-bottom: 16px; font-weight: 600;">No Profile Found</h2>
+                    <p style="color: #666; margin-bottom: 24px; font-size: 16px;">Please complete the survey to get your personalized recommendations, or login if you already have an account.</p>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" onclick="window.location.href='/profile/login.html'">Login</button>
+                        <button type="button" class="btn-secondary" onclick="window.location.href='/survey/intake-survey.html'">Take Survey</button>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+

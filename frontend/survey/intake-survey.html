@@ -147,6 +147,7 @@
         }
 
         input[type="text"],
+        input[type="email"],
         input[type="number"],
         select {
             width: 100%;
@@ -161,6 +162,7 @@
         }
 
         input[type="text"]:focus,
+        input[type="email"]:focus,
         input[type="number"]:focus,
         select:focus {
             outline: none;
@@ -1620,31 +1622,31 @@
                 label: "Sports & Fitness",
                 icon: "🏃",
                 subInterests: [
-                    { id: "team-sports", label: "Team Sports (basketball, soccer, volleyball)" },
-                    { id: "tennis", label: "Tennis/Racquet Sports" },
-                    { id: "yoga", label: "Yoga & Pilates" },
-                    { id: "running", label: "Running & Cycling" },
-                    { id: "hiking", label: "Hiking & Outdoor Adventures" },
-                    { id: "swimming", label: "Swimming & Water Sports" },
-                    { id: "martial-arts", label: "Martial Arts" },
+                    { id: "team-sports", label: "Team Sports Leagues (basketball, soccer, volleyball)" },
+                    { id: "tennis", label: "Tennis & Racquet Sports (Leagues & Groups)" },
+                    { id: "yoga", label: "Yoga & Pilates Classes" },
+                    { id: "running", label: "Running Groups & Clubs" },
+                    { id: "swimming", label: "Swimming & Water Sports (Groups & Teams)" },
+                    { id: "martial-arts", label: "Martial Arts Classes & Dojos" },
                     { id: "dance-fitness", label: "Dance & Fitness Classes" },
-                    { id: "gym", label: "Gym & Weight Training" },
-                    { id: "golf", label: "Golf" }
+                    { id: "gym", label: "Group Fitness Classes & Bootcamps" },
+                    { id: "cycling", label: "Cycling Groups & Bike Clubs" },
+                    { id: "boxing", label: "Boxing Classes & Sparring Groups" }
                 ]
             },
             arts: {
                 label: "Arts & Culture",
                 icon: "🎨",
                 subInterests: [
-                    { id: "museums", label: "Art Galleries & Museums" },
-                    { id: "theater", label: "Theater & Performances" },
-                    { id: "concerts", label: "Live Music & Concerts" },
-                    { id: "painting", label: "Painting & Drawing" },
-                    { id: "photography", label: "Photography" },
-                    { id: "pottery", label: "Pottery & Ceramics" },
-                    { id: "crafts", label: "Crafts & DIY" },
-                    { id: "writing", label: "Creative Writing" },
-                    { id: "film", label: "Film & Cinema" }
+                    { id: "museums", label: "Museum Tours & Gallery Walks" },
+                    { id: "theater", label: "Theater & Performances (Group Outings)" },
+                    { id: "painting", label: "Painting & Drawing Classes" },
+                    { id: "photography", label: "Photography Groups & Photo Walks" },
+                    { id: "pottery", label: "Pottery & Ceramics Classes" },
+                    { id: "crafts", label: "Crafts & DIY Workshops" },
+                    { id: "writing", label: "Creative Writing Groups & Workshops" },
+                    { id: "film", label: "Film Screenings & Cinema Groups" },
+                    { id: "street-art", label: "Street Art Tours & Graffiti Walks" }
                 ]
             },
             food: {
@@ -1652,90 +1654,97 @@
                 icon: "🍽️",
                 subInterests: [
                     { id: "cooking-classes", label: "Cooking Classes" },
-                    { id: "wine-tasting", label: "Wine Tasting" },
-                    { id: "food-tours", label: "Food Tours" },
-                    { id: "dining-out", label: "Dining Out & Restaurants" },
-                    { id: "baking", label: "Baking & Pastry" },
-                    { id: "coffee", label: "Coffee Culture" },
-                    { id: "breweries", label: "Breweries & Beer Tasting" },
-                    { id: "farmers-markets", label: "Farmers Markets" }
+                    { id: "wine-tasting", label: "Wine Tasting Events" },
+                    { id: "food-tours", label: "Food Tours & Culinary Walks" },
+                    { id: "food-events", label: "Food Festivals & Pop-ups" },
+                    { id: "baking", label: "Baking & Pastry Classes" },
+                    { id: "coffee", label: "Coffee Tastings & Cafe Meetups" },
+                    { id: "breweries", label: "Brewery Tours & Beer Tasting Events" },
+                    { id: "farmers-markets", label: "Farmers Market Visits & Food Walks" },
+                    { id: "restaurant-weeks", label: "Restaurant Week Events & Group Dining" },
+                    { id: "supper-clubs", label: "Supper Clubs & Dining Groups" }
                 ]
             },
             social: {
                 label: "Social & Entertainment",
                 icon: "🎉",
                 subInterests: [
-                    { id: "parties", label: "Parties & Social Events" },
+                    { id: "social-mixers", label: "Social Mixers & Networking" },
                     { id: "bars-clubs", label: "Bars & Nightlife" },
                     { id: "trivia", label: "Trivia Nights" },
                     { id: "karaoke", label: "Karaoke" },
-                    { id: "comedy", label: "Comedy Shows" },
-                    { id: "networking", label: "Networking Events" },
-                    { id: "meetups", label: "Casual Meetups" }
+                    { id: "comedy", label: "Comedy Shows & Open Mics" },
+                    { id: "networking", label: "Professional Networking Events" },
+                    { id: "rooftop-events", label: "Rooftop Events & Gatherings" },
+                    { id: "speed-dating", label: "Speed Dating & Singles Events" },
+                    { id: "happy-hours", label: "Happy Hours & After-Work Socials" }
                 ]
             },
             learning: {
                 label: "Learning & Development",
                 icon: "📚",
                 subInterests: [
-                    { id: "workshops", label: "Workshops & Classes" },
-                    { id: "lectures", label: "Lectures & Talks" },
+                    { id: "skill-workshops", label: "Skill-Building Workshops" },
+                    { id: "professional-development", label: "Professional Development Classes" },
+                    { id: "lectures", label: "Lectures & Discussion Groups" },
                     { id: "book-clubs", label: "Book Clubs" },
-                    { id: "language", label: "Language Learning" },
-                    { id: "tech", label: "Technology & Coding" },
-                    { id: "business", label: "Business & Entrepreneurship" },
-                    { id: "science", label: "Science & Innovation" }
+                    { id: "language", label: "Language Exchange Groups" },
+                    { id: "tech", label: "Technology & Coding Meetups" },
+                    { id: "business", label: "Business & Entrepreneurship Groups" },
+                    { id: "science", label: "Science & Innovation Events" },
+                    { id: "financial-literacy", label: "Financial Literacy Workshops" }
                 ]
             },
             outdoor: {
-                label: "Outdoor & Nature",
+                label: "Outdoor & Urban Nature",
                 icon: "🌲",
                 subInterests: [
-                    { id: "hiking-nature", label: "Hiking & Nature Walks" },
-                    { id: "camping", label: "Camping" },
-                    { id: "biking", label: "Biking & Cycling" },
-                    { id: "kayaking", label: "Kayaking & Paddling" },
-                    { id: "rock-climbing", label: "Rock Climbing" },
-                    { id: "gardening", label: "Gardening & Horticulture" },
-                    { id: "birdwatching", label: "Birdwatching & Wildlife" },
-                    { id: "fishing", label: "Fishing" }
+                    { id: "urban-hiking", label: "Urban Hiking Groups & Walking Clubs" },
+                    { id: "biking", label: "Biking Groups & Cycling Clubs" },
+                    { id: "kayaking", label: "Kayaking Groups & Paddle Clubs" },
+                    { id: "rock-climbing", label: "Rock Climbing Gyms & Climbing Groups" },
+                    { id: "gardening", label: "Community Gardening Groups" },
+                    { id: "park-activities", label: "Park Activities & Outdoor Fitness Groups" },
+                    { id: "walking-tours", label: "Walking Tours & Urban Exploration Groups" }
                 ]
             },
             games: {
                 label: "Games & Hobbies",
                 icon: "🎮",
                 subInterests: [
-                    { id: "board-games", label: "Board Games" },
-                    { id: "video-games", label: "Video Games" },
-                    { id: "card-games", label: "Card Games (Poker, Bridge)" },
-                    { id: "puzzles", label: "Puzzles & Brain Teasers" },
-                    { id: "chess", label: "Chess" },
-                    { id: "collecting", label: "Collecting (cards, coins, etc.)" },
-                    { id: "model-building", label: "Model Building" }
+                    { id: "board-games", label: "Board Game Meetups & Game Nights" },
+                    { id: "video-games", label: "Video Game Tournaments & Gaming Events" },
+                    { id: "card-games", label: "Card Game Clubs (Poker, Bridge)" },
+                    { id: "puzzles", label: "Puzzle Groups & Escape Rooms" },
+                    { id: "chess", label: "Chess Clubs & Tournaments" },
+                    { id: "arcade", label: "Arcade & Barcade Events" },
+                    { id: "dnd-rpg", label: "D&D & RPG Groups" }
                 ]
             },
             community: {
                 label: "Volunteering & Community",
                 icon: "🤝",
                 subInterests: [
-                    { id: "charity", label: "Charity Work" },
-                    { id: "environmental", label: "Environmental Causes" },
-                    { id: "mentoring", label: "Mentoring & Tutoring" },
-                    { id: "animal-welfare", label: "Animal Welfare" },
-                    { id: "community-organizing", label: "Community Organizing" },
-                    { id: "fundraising", label: "Fundraising Events" }
+                    { id: "charity", label: "Charity Work & Fundraisers" },
+                    { id: "environmental", label: "Environmental Cleanups & Groups" },
+                    { id: "mentoring", label: "Mentoring & Tutoring Groups" },
+                    { id: "animal-welfare", label: "Animal Welfare & Rescue Groups" },
+                    { id: "community-organizing", label: "Community Organizing & Activism" },
+                    { id: "neighborhood-events", label: "Neighborhood Events & Block Parties" },
+                    { id: "urban-planning", label: "Urban Planning & Civic Engagement Groups" }
                 ]
             },
             wellness: {
                 label: "Wellness & Mindfulness",
                 icon: "🧘",
                 subInterests: [
-                    { id: "meditation", label: "Meditation" },
-                    { id: "mindfulness", label: "Mindfulness Practices" },
-                    { id: "spa", label: "Spa & Relaxation" },
-                    { id: "tai-chi", label: "Tai Chi & Qigong" },
+                    { id: "meditation", label: "Meditation Groups & Classes" },
+                    { id: "mindfulness", label: "Mindfulness Workshops & Groups" },
+                    { id: "spa", label: "Spa & Wellness Events (Group Sessions)" },
+                    { id: "tai-chi", label: "Tai Chi & Qigong Classes" },
                     { id: "wellness-workshops", label: "Wellness Workshops" },
-                    { id: "therapy-groups", label: "Support & Therapy Groups" }
+                    { id: "therapy-groups", label: "Support & Therapy Groups" },
+                    { id: "sound-healing", label: "Sound Healing & Sound Bath Groups" }
                 ]
             },
             music: {
@@ -1743,11 +1752,12 @@
                 icon: "🎵",
                 subInterests: [
                     { id: "concerts-music", label: "Concerts & Live Music" },
-                    { id: "playing-instrument", label: "Playing an Instrument" },
-                    { id: "singing", label: "Singing & Choir" },
-                    { id: "djing", label: "DJing & Music Production" },
-                    { id: "music-festivals", label: "Music Festivals" },
-                    { id: "open-mic", label: "Open Mic Nights" }
+                    { id: "playing-instrument", label: "Music Jams & Instrument Groups" },
+                    { id: "singing", label: "Singing & Choir Groups" },
+                    { id: "djing", label: "DJing & Music Production Workshops" },
+                    { id: "music-festivals", label: "Music Festivals & Street Fests" },
+                    { id: "open-mic", label: "Open Mic Nights" },
+                    { id: "jazz-clubs", label: "Jazz Clubs & Live Jazz" }
                 ]
             }
         };
@@ -1981,18 +1991,18 @@
             showLoadingSpinner();
             
             try {
-                // Collect checkbox values
-                const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
-                    .map(checkbox => checkbox.value);
+            // Collect checkbox values
+            const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
+                .map(checkbox => checkbox.value);
 
-                // Collect interest categories and specific interests
-                const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
-                    .map(checkbox => checkbox.value);
-                const selectedInterests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
-                    .map(checkbox => checkbox.value);
+            // Collect interest categories and specific interests
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked'))
+                .map(checkbox => checkbox.value);
+            const selectedInterests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
+                .map(checkbox => checkbox.value);
 
-                // Collect affinity data
-                const affinityData = collectAffinityData();
+            // Collect affinity data
+            const affinityData = collectAffinityData();
 
                 // Get personality raw scores (1-7 scale)
                 const q1 = parseInt(document.getElementById('q1')?.value) || 1;
@@ -2104,9 +2114,6 @@
                 
                 console.log('Submitting survey data:', surveyData);
                 
-                // Store survey data for retry functionality
-                lastSurveyData = surveyData;
-                
                 // Submit to backend API
                 const API_BASE_URL = 'http://localhost:3000';
                 
@@ -2127,14 +2134,14 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // Store userId in localStorage for future visits
+                    localStorage.setItem('empower_userId', result.userId);
+                    
                     // Hide loading spinner
                     hideLoadingSpinner();
                     
-                    // Show recommendations
-                    console.log('Recommendations:', result.recommendations);
-                    
-                    // Display recommendations
-                    displayRecommendations(result.recommendations, result.userId);
+                    // Redirect to match page (single-match feedback system)
+                    window.location.href = '/profile/recommendations.html?userId=' + result.userId;
                 } else {
                     throw new Error(result.error || 'Failed to submit survey');
                 }
@@ -2166,336 +2173,8 @@
             }
         });
 
-        // Simplified parser - extracts only essential fields
-        function parseRecommendations(text) {
-            const recommendations = [];
-            
-            console.log('Parsing recommendations, text length:', text.length);
-            console.log('First 500 chars:', text.substring(0, 500));
-            
-            // Split by "### Recommendation" headers (new format) or numbered items
-            let sections = text.split(/(?=### Recommendation \d+:)/i);
-            if (sections.length < 2) {
-                // Try old format with numbered items
-                sections = text.split(/(?=^\d+\.\s)/m);
-            }
-            if (sections.length < 2) {
-                sections = text.split(/\n(?=\d+\.\s+)/);
-            }
-            if (sections.length < 2) {
-                sections = text.split(/\n(?=\d+\.)/);
-            }
-            if (sections.length < 2) {
-                sections = text.split(/\n\n(?=\d+\.)/);
-            }
-            
-            console.log(`Split into ${sections.length} sections`);
-            
-            sections.forEach((section, idx) => {
-                if (!section.trim()) return;
-                
-                const rec = {
-                    name: '',
-                    url: '',
-                    whyMatches: '',
-                    date: '',
-                    time: '',
-                    location: '',
-                    isRecurring: false
-                };
-                
-                // Extract name - try multiple patterns (handle **1. Name** format)
-                // Handle "### Recommendation N: Name" format first
-                let nameMatch = section.match(/### Recommendation \d+:\s*(.+?)(?:\n|$)/i);
-                if (!nameMatch) {
-                    // Try "1. **Event/Activity Name:** Name" format
-                    nameMatch = section.match(/\d+\.\s*\*\*Event\/Activity Name:\*\*\s*(.+?)(?:\n|$)/i);
-                }
-                if (!nameMatch) {
-                    nameMatch = section.match(/^\d+\.\s*\*\*(.+?)\*\*/m);
-                }
-                if (!nameMatch) {
-                    nameMatch = section.match(/^\d+\.\s+Event\/Activity Name[:\-]\s*(.+?)(?:\n|$)/i);
-                }
-                if (!nameMatch) {
-                    nameMatch = section.match(/^\d+\.\s+(.+?)(?:\n|$)/m);
-                }
-                if (!nameMatch) {
-                    // Try to get first non-empty line after number
-                    const lines = section.split('\n').filter(l => l.trim());
-                    if (lines.length > 0) {
-                        const firstLine = lines[0].replace(/^\d+\.\s*/, '').trim();
-                        if (firstLine && !firstLine.match(/^(Type|Why|Logistics|What|How|URL)/i)) {
-                            rec.name = firstLine.replace(/\*\*/g, '').trim();
-                        }
-                    }
-                } else {
-                    rec.name = (nameMatch[1] || nameMatch[2] || '').trim().replace(/\*\*/g, '');
-                }
-                
-                // Extract recurring status from Type field - handle "2. **Type:** Recurring [Category]" format
-                const typeMatch = section.match(/\d+\.\s*\*\*Type:\*\*\s*([^\n]+)/i) ||
-                                 section.match(/-?\s*\*\*Type:\*\*\s*([^\n]+)/i) || 
-                                 section.match(/Type[:\-]\s*\[?([^\]]+)\]?/i) || 
-                                 section.match(/Type[:\-]\s*([^\n]+)/i);
-                if (typeMatch) {
-                    const typeText = typeMatch[1].toLowerCase();
-                    rec.isRecurring = typeText.includes('recurring');
-                }
-                
-                // Extract Why It Matches - handle "3. **Why It Matches:** ..." format
-                const whyMatch = section.match(/\d+\.\s*\*\*Why It Matches:\*\*\s*(.+?)(?=\n\s*\d+\.\s*\*\*(?:Logistics|What|How|URL)|$)/is) ||
-                                section.match(/-?\s*\*\*Why It Matches:\*\*\s*(.+?)(?=\n\s*-?\s*\*\*(?:Logistics|What|How|URL)|$)/is) ||
-                                section.match(/Why It Matches[:\-]\s*(.+?)(?=\n\s*(Logistics|What to Expect|How to Join|URL|$|\d+\.))/is);
-                if (whyMatch) {
-                    rec.whyMatches = whyMatch[1].trim().replace(/\*\*/g, '');
-                }
-                
-                // Extract Logistics for date, time, location - handle "4. **Logistics:** ..." format
-                const logisticsMatch = section.match(/\d+\.\s*\*\*Logistics:\*\*\s*(.+?)(?=\n\s*\d+\.\s*\*\*(?:What|How|URL)|$)/is) ||
-                                      section.match(/-?\s*\*\*Logistics:\*\*\s*(.+?)(?=\n\s*-?\s*\*\*(?:What|How|URL)|$)/is) ||
-                                      section.match(/Logistics[:\-]\s*(.+?)(?=\n\s*(What to Expect|How to Join|URL|$|\d+\.))/is);
-                if (logisticsMatch) {
-                    const logistics = logisticsMatch[1].trim();
-                    
-                    // Extract time
-                    const timeMatch = logistics.match(/(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))/i);
-                    if (timeMatch) {
-                        rec.time = timeMatch[1].trim();
-                    }
-                    
-                    // Extract day/date patterns
-                    const dayMatch = logistics.match(/(every\s+[A-Za-z]+day|weekly|monthly|bi-weekly|first\s+[A-Za-z]+day|third\s+[A-Za-z]+day|next\s+[A-Za-z]+day|[A-Za-z]+day[s]?)/i);
-                    if (dayMatch) {
-                        rec.date = dayMatch[1].trim();
-                    } else {
-                        // Try date format
-                        const dateMatch = logistics.match(/(\d{1,2}\/\d{1,2}\/\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4}|next\s+[A-Za-z]+day|upcoming\s+weekend)/i);
-                        if (dateMatch) {
-                            rec.date = dateMatch[1].trim();
-                        }
-                    }
-                    
-                    // Extract location - look for "at [Location]" or "in [Location]" or after comma
-                    const locationMatch = logistics.match(/(?:at|in)\s+([^,\.]+?)(?:\.|,|$)/i) ||
-                                         logistics.match(/,\s*([^\.]+?)(?:\.|$)/);
-                    if (locationMatch) {
-                        rec.location = locationMatch[1].trim();
-                    }
-                }
-                
-                // Extract URL - handle "7. **URL:** [text](url)" markdown format
-                let urlMatch = section.match(/\d+\.\s*\*\*URL:\*\*\s*\[[^\]]+\]\(([^\)]+)\)/i) ||
-                              section.match(/-?\s*\*\*URL:\*\*\s*\[[^\]]+\]\(([^\)]+)\)/i) ||
-                              section.match(/-?\s*\*\*URL:\*\*\s*(https?:\/\/[^\s\n]+)/i) ||
-                              section.match(/URL[:\-]\s*(https?:\/\/[^\s\n]+)/i);
-                if (!urlMatch) {
-                    // Try "How to Join" field for URLs - handle "6. **How to Join:** ..." format
-                    const howToJoinMatch = section.match(/\d+\.\s*\*\*How to Join:\*\*\s*(.+?)(?=\n\s*\d+\.|$)/is) ||
-                                          section.match(/-?\s*\*\*How to Join:\*\*\s*(.+?)(?=\n|$)/is) ||
-                                          section.match(/-?\s*How to Join[:\-]\s*(.+?)(?=\n|$)/is);
-                    if (howToJoinMatch) {
-                        const howToJoin = howToJoinMatch[1].trim();
-                        // Look for markdown links first
-                        const markdownLink = howToJoin.match(/\[([^\]]+)\]\(([^\)]+)\)/);
-                        if (markdownLink) {
-                            rec.url = markdownLink[2].trim();
-                        } else {
-                            // Look for URLs in the text
-                            const urlInText = howToJoin.match(/(https?:\/\/[^\s\n]+)/i) ||
-                                            howToJoin.match(/(www\.[^\s\n]+)/i) ||
-                                            howToJoin.match(/([a-zA-Z0-9-]+\.(com|org|net|io|co)[^\s\n]*)/i);
-                            if (urlInText) {
-                                let url = urlInText[1].trim();
-                                if (!url.startsWith('http')) {
-                                    url = 'https://' + url;
-                                }
-                                rec.url = url;
-                            }
-                        }
-                    } else {
-                        // Fallback: search entire section for markdown links or URLs
-                        const markdownLink = section.match(/\[([^\]]+)\]\(([^\)]+)\)/);
-                        if (markdownLink) {
-                            rec.url = markdownLink[2].trim();
-                        } else {
-                            urlMatch = section.match(/(https?:\/\/[^\s\n]+)/i);
-                            if (urlMatch) {
-                                rec.url = urlMatch[1].trim();
-                            }
-                        }
-                    }
-                } else {
-                    rec.url = urlMatch[1].trim();
-                }
-                
-                // Only add if we have at least a name
-                if (rec.name && rec.name.length > 0 && rec.name.length < 200 && !rec.name.match(/^(Event\/Activity Name|Type|Name|Logistics|What|How|URL):/i)) {
-                    console.log(`Parsed recommendation ${idx + 1}:`, {
-                        name: rec.name.substring(0, 50),
-                        hasUrl: !!rec.url,
-                        hasWhy: !!rec.whyMatches,
-                        isRecurring: rec.isRecurring
-                    });
-                    recommendations.push(rec);
-                }
-            });
-            
-            console.log(`Total parsed: ${recommendations.length} recommendations`);
-            return recommendations;
-        }
-        
-        // Store survey data for retry functionality
-        let lastSurveyData = null;
-        
-        // Simplified display function - shows simple list format
-        function displayRecommendations(recommendations, userId) {
-            // Hide the survey form
-            document.querySelector('.survey-container').style.display = 'none';
-            
-            // Parse recommendations
-            const parsedRecs = parseRecommendations(recommendations);
-            
-            // If parsing failed, show raw text with a message
-            if (parsedRecs.length === 0) {
-                console.error('Failed to parse recommendations, showing raw text');
-                const recommendationsHTML = `
-                    <div class="recommendations-header">
-                        <h2>Your Personalized Recommendations</h2>
-                        <p style="color: #666; margin-bottom: 16px;">We encountered an issue parsing the recommendations. Showing raw output:</p>
-                    </div>
-                    <div style="max-width: 1400px; margin: 0 auto; background: white; padding: 32px; border-radius: 16px; white-space: pre-wrap; font-family: monospace; font-size: 14px; max-height: 600px; overflow-y: auto;">
-                        ${escapeHtml(recommendations.substring(0, 5000))}
-                    </div>
-                    <div style="max-width: 1400px; margin: 40px auto; text-align: center;">
-                        <button type="button" class="btn-primary" onclick="window.location.reload()" style="padding: 14px 32px; font-size: 16px; margin-right: 12px;">Take Survey Again</button>
-                        ${lastSurveyData ? `<button type="button" class="btn-secondary" onclick="retryRecommendations()" style="padding: 14px 32px; font-size: 16px;">Get New Recommendations</button>` : ''}
-                    </div>
-                `;
-                document.querySelector('.header').insertAdjacentHTML('afterend', recommendationsHTML);
-                return;
-            }
-            
-            // Generate simple list HTML
-            const listItems = parsedRecs.map((rec, index) => {
-                const nameDisplay = rec.url 
-                    ? `<a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #FF8C42; text-decoration: none; font-weight: 600;">${escapeHtml(rec.name)}</a>`
-                    : `<strong>${escapeHtml(rec.name)}</strong>`;
-                
-                const dateTimeLocation = [
-                    rec.date ? `📅 ${escapeHtml(rec.date)}` : '',
-                    rec.time ? `🕐 ${escapeHtml(rec.time)}` : '',
-                    rec.location ? `📍 ${escapeHtml(rec.location)}` : ''
-                ].filter(Boolean).join(' • ') || '';
-                
-                const recurringBadge = rec.isRecurring 
-                    ? '<span style="display: inline-block; background: #4CAF50; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">Recurring</span>'
-                    : '<span style="display: inline-block; background: #2196F3; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">One-Time</span>';
-                
-                return `
-                    <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="margin-bottom: 12px;">
-                            <h3 style="font-family: 'Montserrat', sans-serif; font-size: 20px; color: #2C2C2C; margin: 0 0 8px 0; font-weight: 600;">
-                                ${index + 1}. ${nameDisplay} ${recurringBadge}
-                            </h3>
-                            ${dateTimeLocation ? `<div style="color: #666; font-size: 14px; margin-bottom: 12px;">${dateTimeLocation}</div>` : ''}
-                            ${rec.url ? `<div style="margin-bottom: 12px;"><a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline; font-size: 14px;">${rec.url}</a></div>` : ''}
-                        </div>
-                        ${rec.whyMatches ? `
-                        <div style="background: #FFF9F0; padding: 16px; border-radius: 8px; border-left: 3px solid #FF8C42;">
-                            <div style="font-size: 14px; color: #FF8C42; font-weight: 600; margin-bottom: 8px;">Why this matches you:</div>
-                            <div style="font-size: 14px; color: #555; line-height: 1.6;">${escapeHtml(rec.whyMatches)}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('');
-            
-            // Create recommendations display
-            const recommendationsHTML = `
-                <div class="recommendations-header">
-                    <h2>Your Personalized Recommendations</h2>
-                    <p style="color: #666; margin-bottom: 16px;">Based on your profile, we found ${parsedRecs.length} perfect matches for you</p>
-                </div>
-                
-                <div style="max-width: 900px; margin: 0 auto;">
-                    ${listItems}
-                </div>
-                
-                <div style="max-width: 900px; margin: 40px auto; text-align: center;">
-                    <button type="button" class="btn-primary" onclick="window.location.reload()" style="padding: 14px 32px; font-size: 16px; margin-right: 12px;">Take Survey Again</button>
-                    ${lastSurveyData ? `<button type="button" class="btn-secondary" onclick="retryRecommendations()" style="padding: 14px 32px; font-size: 16px;">Get New Recommendations</button>` : ''}
-                </div>
-            `;
-            
-            document.querySelector('.header').insertAdjacentHTML('afterend', recommendationsHTML);
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        
-        // Function to retry recommendations with same survey data
-        async function retryRecommendations() {
-            if (!lastSurveyData) {
-                alert('No previous survey data found. Please take the survey again.');
-                return;
-            }
-            
-            // Show loading spinner
-            showLoadingSpinner();
-            
-            // Remove existing recommendations display
-            const header = document.querySelector('.recommendations-header');
-            if (header) {
-                // Remove everything from header to the buttons at the end
-                let current = header;
-                while (current && current.nextSibling) {
-                    const next = current.nextSibling;
-                    if (next.nodeType === 1) { // Element node
-                        if (next.tagName === 'DIV' && (next.textContent.includes('Take Survey Again') || next.textContent.includes('Get New Recommendations'))) {
-                            next.remove();
-                            break;
-                        }
-                        next.remove();
-                    } else {
-                        current = current.nextSibling;
-                    }
-                }
-                header.remove();
-            }
-            
-            try {
-                const API_BASE_URL = 'http://localhost:3000';
-                
-                const response = await fetch(`${API_BASE_URL}/api/submit-survey`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(lastSurveyData)
-                });
-
-                const result = await response.json();
-
-                hideLoadingSpinner();
-
-                if (result.success) {
-                    // Display new recommendations
-                    displayRecommendations(result.recommendations, result.userId);
-                } else {
-                    alert(`We encountered an error: ${result.error}`);
-                }
-            } catch (error) {
-                hideLoadingSpinner();
-                alert(`We encountered an error: ${error.message}`);
-            }
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        // Recommendations parsing and display functions have been moved to /assets/js/recommendations.js
+        // Survey now redirects to /profile/recommendations.html after submission
 
         // Zip code validation
         document.getElementById('zipcode').addEventListener('input', function(e) {

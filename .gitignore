@@ -9,6 +9,7 @@ credentials.json
 .env
 .env.local
 .env.*.local
+.env.backup.*
 
 # Node modules
 node_modules/

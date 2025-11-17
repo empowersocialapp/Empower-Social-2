@@ -170,7 +170,7 @@ A psychology-based event recommendation system that matches users with social ac
 - Build verified organizations database
 - Create beautiful results page
 - Add tracking and feedback
-- Integrate real event data APIs (Eventbrite, Meetup)
+- Future: Integrate real event data APIs (when ready)
 
 ---
 

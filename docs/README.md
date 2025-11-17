@@ -93,13 +93,17 @@ Empower uses a psychology-backed intake survey to create a rich user profile, th
 - ✅ **Responsive design** (mobile-friendly)
 - ✅ **Beautiful UI** (Montserrat + DM Sans typography)
 
+### Current Features (v1.0)
+- ✅ **Airtable integration** (user profiles, survey responses, recommendations)
+- ✅ **OpenAI GPT-4 integration** (conceptual recommendation generation)
+- ✅ **Recommendation display** (card-based with personalized explanations)
+- ✅ **User profile storage** (save profiles, track history)
+- ✅ **Refresh recommendations** (get new suggestions anytime)
+
 ### Coming Soon
-- 🔄 **Database integration** (Airtable/Supabase)
-- 🔄 **Custom GPT API connection** (automated recommendations)
-- 🔄 **Recommendation display** (card-based with images and match scores)
-- 🔄 **User authentication** (save profiles, track history)
-- 🔄 **Save/share functionality** (bookmark events)
-- 🔄 **Refresh recommendations** (get new suggestions anytime)
+- 🔄 **Real event matching** (match concepts to actual events with URLs)
+- 🔄 **Save/share functionality** (bookmark concepts)
+- 🔄 **Feedback system** (improve recommendations based on user feedback)
 
 ---
 
@@ -158,34 +162,32 @@ Score 31-50  → High need (prioritize community)
 - Highest score among intrinsic, social, and achievement
 - Determines messaging and event emphasis
 
-### 3. Prompt Generation
+### 3. Conceptual Recommendation Generation
 
-The system generates a personalized GPT prompt including:
+The system generates personalized conceptual activity recommendations using GPT-4:
 
-- **Dynamic date range** (always next 30 days from today)
 - **Interpreted personality** ("INTROVERTED, HIGHLY ORGANIZED, VERY OPEN")
 - **Social situation** with emphasis level
 - **Prioritized recommendations** (ordered by user's specific needs)
-- **Event source requirements** (Meetup, leagues, studios, etc.)
-- **Balance requirement** (50% recurring, 50% one-time)
+- **Activity type balance** (50% recurring organizations/groups, 50% one-time events)
+- **Urban and social focus** (all activities done with other people)
+- **Comprehensive explanations** covering interest alignment, personality fit, motivation match, social needs, and practical fit
 
-### 4. AI-Powered Matching
+### 4. AI-Powered Concept Generation
 
-The Custom GPT uses the prompt to:
-- Search local events within date range and distance
-- Score events based on personality fit, social needs, motivation alignment
-- Balance event types (recurring for relationships, one-time for variety)
-- Provide match reasoning specific to the user's profile
+GPT-4 uses the user profile to:
+- Generate idealized activity concepts that match personality, interests, and motivations
+- Provide detailed explanations of why each concept fits the user
+- Balance activity types (recurring for relationships, one-time for variety)
+- Focus on urban, social, group-oriented activities
 
 ### 5. Display Recommendations
 
 Beautiful card-based UI showing:
-- Event image and type badge (RECURRING/ONE-TIME)
-- Match score (0-100%)
-- Schedule, location, cost, group size
-- Why it's a match (2-3 personalized reasons)
-- Newcomer-friendly and other badges
-- Registration/sign-up links
+- Activity concept name and type badge (RECURRING/ONE-TIME)
+- Why it matches (comprehensive personalized explanation)
+- Location context
+- Note that these are conceptual recommendations to use as inspiration
 
 ---
 
@@ -197,10 +199,10 @@ Beautiful card-based UI showing:
 - **Google Fonts** - Montserrat (headers) + DM Sans (body)
 - **Responsive Design** - Mobile-first approach
 
-### Planned Backend
-- **Airtable/Supabase** - User profile storage
-- **OpenAI GPT-4** - Event recommendation engine
-- **Custom GPT API** - Personalized prompt processing
+### Backend
+- **Airtable** - User profile storage, survey responses, recommendations
+- **OpenAI GPT-4** - Conceptual recommendation generation
+- **Node.js/Express** - API server
 
 ### Design System
 - **Colors:** Orange gradient (#FF8C42 → #FFA566), warm neutral background

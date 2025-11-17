@@ -28,7 +28,9 @@ app.get('/api/health', (req, res) => {
 
 // API routes
 const surveyRoutes = require('./routes/survey');
+const recommendationsRoutes = require('./routes/recommendations');
 app.use('/api', surveyRoutes);
+app.use('/api', recommendationsRoutes);
 
 // 404 handler
 app.use((req, res) => {

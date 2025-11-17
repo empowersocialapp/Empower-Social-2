@@ -126,39 +126,59 @@ router.post('/submit-survey', async (req, res) => {
     
     const calculatedScoresId = scoresResult.data.calculatedScoresId;
     
-    // Step 4: Generate recommendations using GPT-4
-    // Pass the IDs we just created to avoid querying
-    const recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
-    if (!recommendationsResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: `Failed to generate recommendations: ${recommendationsResult.error}`
+    // Step 4: Generate conceptual recommendations
+    const { generateRecommendationsV2 } = require('../services/recommendations-v2');
+    
+    let recommendationsResult;
+    try {
+      console.log('Attempting conceptual recommendation system for survey submission...');
+      recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId);
+      
+      if (!recommendationsResult.success) {
+        console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
+        throw new Error(recommendationsResult.error);
+      }
+    } catch (v2Error) {
+      console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
+      
+      // Fallback to legacy system
+      const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
+      recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
+      
+      if (!recommendationsResult.success) {
+        return res.status(500).json({
+          success: false,
+          error: `Failed to generate recommendations: ${recommendationsResult.error}`
+        });
+      }
+      
+      const { recommendations, promptText } = recommendationsResult.data;
+      
+      // Save prompt and recommendations to GPT_Prompts table
+      const saveResult = await savePromptToAirtable(
+        userId,
+        surveyResponseId,
+        calculatedScoresId,
+        promptText,
+        recommendations
+      );
+      
+      if (!saveResult.success) {
+        console.error('Failed to save prompt to Airtable:', saveResult.error);
+      }
+      
+      // Success response with recommendations
+      return res.status(201).json({
+        success: true,
+        userId: userId,
+        recommendations: recommendations,
+        message: 'Survey submitted successfully and recommendations generated (legacy system)'
       });
     }
     
-    const { recommendations, promptText } = recommendationsResult.data;
-    
-    // Step 5: Save prompt and recommendations to GPT_Prompts table
-    const saveResult = await savePromptToAirtable(
-      userId,
-      surveyResponseId,
-      calculatedScoresId,
-      promptText,
-      recommendations
-    );
-    
-    if (!saveResult.success) {
-      // Log error but don't fail the request - recommendations were generated successfully
-      console.error('Failed to save prompt to Airtable:', saveResult.error);
-    }
-    
-    // Success response with recommendations
-    return res.status(201).json({
-      success: true,
-      userId: userId,
-      recommendations: recommendations,
-      message: 'Survey submitted successfully and recommendations generated'
-    });
+    // Conceptual system succeeded - recommendations are already saved in generateRecommendationsV2
+    // Redirect to recommendations page
+    return res.redirect(`/profile/recommendations.html?userId=${userId}`);
     
   } catch (error) {
     console.error('Error in submit-survey endpoint:', error);

@@ -117,7 +117,11 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
     if (realEvents.length > 0) {
       console.log('Sample events:', realEvents.slice(0, 3).map(e => ({ name: e.name, source: e.source, url: e.url })));
     } else {
-      console.warn('⚠️  No real events found! Check API keys and event fetching logic.');
+      // Only warn if API keys are configured (otherwise it's expected)
+      if (process.env.EVENTBRITE_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.FIRECRAWL_API_KEY) {
+        console.warn('⚠️  No real events found. Check API keys and event fetching logic.');
+      }
+      // Otherwise silently continue - recommendations will be conceptual
     }
     
     // 5. Build the prompt using template (now with real events)
