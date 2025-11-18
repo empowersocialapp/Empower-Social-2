@@ -290,7 +290,7 @@ function displayRecommendations(recommendations, userId, userName = null) {
                 ${escapeHtml(recommendations.substring(0, 5000))}
             </div>
             <div style="margin-top: 40px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='${window.location.origin}/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
+                ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
                 ${userId ? `<button type="button" class="btn-secondary" onclick="regenerateRecommendations('${userId}')">Get New Recommendations</button>` : ''}
                 <button type="button" class="btn-secondary" onclick="window.location.href='/profile/login.html'" style="border-color: #667eea; color: #667eea;">Login as Different User</button>
             </div>
@@ -357,7 +357,7 @@ function displayRecommendations(recommendations, userId, userName = null) {
         </div>
         
         <div style="margin-top: 40px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-            ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='${window.location.origin}/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
+            ${userId ? `<button type="button" class="btn-primary" onclick="window.location.href='/survey/intake-survey.html?edit=true&userId=${userId}'">Edit Survey</button>` : ''}
             ${userId ? `<button type="button" class="btn-secondary" onclick="regenerateRecommendations('${userId}')">Get New Recommendations</button>` : ''}
             <button type="button" class="btn-secondary" onclick="window.location.href='/profile/login.html'" style="border-color: #667eea; color: #667eea;">Login as Different User</button>
         </div>

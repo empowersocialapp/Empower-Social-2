@@ -220,7 +220,7 @@
                     localStorage.setItem('empower_name', result.name);
 
                     // Redirect to recommendations page
-                    window.location.href = `${window.location.origin}/profile/recommendations.html?userId=${result.userId}`;
+                    window.location.href = `/profile/recommendations.html?userId=${result.userId}`;
                 } else {
                     showError(result.error || 'Username not found. Please check your username or take the survey.');
                     submitBtn.disabled = false;
