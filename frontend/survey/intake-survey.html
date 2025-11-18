@@ -898,7 +898,7 @@
                 </div>
 
                 <div class="button-group" style="margin-top: 40px;">
-                    <button type="button" class="btn-primary" onclick="startSurvey()" style="flex: none; padding: 16px 48px; font-size: 18px;">Get Started</button>
+                    <button type="button" class="btn-primary" id="startSurveyBtn" style="flex: none; padding: 16px 48px; font-size: 18px;">Get Started</button>
                 </div>
 
                 <!-- Returning User Section -->
@@ -1637,6 +1637,14 @@
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Attach event listener to start survey button when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('startSurveyBtn');
+            if (startBtn) {
+                startBtn.addEventListener('click', startSurvey);
+            }
+        });
 
         // Login user with username
         async function loginUser() {
