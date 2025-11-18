@@ -69,6 +69,245 @@ async function generateConceptualRecommendations(userProfile, recommendationsCou
 }
 
 /**
+ * Build detailed setting preferences section
+ */
+function buildDetailedSettingPreferences(survey) {
+  const prefs = [];
+  if (survey.Pref_Indoor === true || survey.Pref_Indoor === 'Yes') {
+    prefs.push('- ✅ Prefers INDOOR activities');
+  } else if (survey.Pref_Indoor === false || survey.Pref_Indoor === 'No') {
+    prefs.push('- ❌ Does NOT prefer indoor activities');
+  }
+  if (survey.Pref_Outdoor === true || survey.Pref_Outdoor === 'Yes') {
+    prefs.push('- ✅ Prefers OUTDOOR activities');
+  } else if (survey.Pref_Outdoor === false || survey.Pref_Outdoor === 'No') {
+    prefs.push('- ❌ Does NOT prefer outdoor activities');
+  }
+  if (survey.Pref_Physical_Active === true || survey.Pref_Physical_Active === 'Yes') {
+    prefs.push('- ✅ Prefers PHYSICAL/ACTIVE activities');
+  } else if (survey.Pref_Physical_Active === false || survey.Pref_Physical_Active === 'No') {
+    prefs.push('- ❌ Does NOT prefer physical activities');
+  }
+  if (survey.Pref_Relaxed_Lowkey === true || survey.Pref_Relaxed_Lowkey === 'Yes') {
+    prefs.push('- ✅ Prefers RELAXED/LOW-KEY atmospheres');
+  } else if (survey.Pref_Relaxed_Lowkey === false || survey.Pref_Relaxed_Lowkey === 'No') {
+    prefs.push('- ❌ Does NOT prefer relaxed atmospheres');
+  }
+  if (survey.Pref_Structured === true || survey.Pref_Structured === 'Yes') {
+    prefs.push('- ✅ Prefers STRUCTURED activities');
+  } else if (survey.Pref_Structured === false || survey.Pref_Structured === 'No') {
+    prefs.push('- ❌ Does NOT prefer structured activities');
+  }
+  if (survey.Pref_Spontaneous === true || survey.Pref_Spontaneous === 'Yes') {
+    prefs.push('- ✅ Prefers SPONTANEOUS activities');
+  } else if (survey.Pref_Spontaneous === false || survey.Pref_Spontaneous === 'No') {
+    prefs.push('- ❌ Does NOT prefer spontaneous activities');
+  }
+  return prefs.length > 0 ? prefs.join('\n') : '- No specific setting preferences indicated';
+}
+
+/**
+ * Build interpretation section for GPT prompt
+ */
+function buildInterpretationSection(user, survey, scores) {
+  const extraversionInterp = getExtraversionInterpretation(scores.Extraversion_Category);
+  const conscientiousnessInterp = getConscientiousnessInterpretation(scores.Conscientiousness_Category);
+  const opennessInterp = getOpennessInterpretation(scores.Openness_Category);
+  
+  // Determine extraversion guidance
+  let extraversionGuidance = '';
+  if (scores.Extraversion_Category === 'High') {
+    extraversionGuidance = 'HIGH: User thrives in large groups, networking events, and high-energy social situations. Prioritize events with 20+ people, mixers, and social gatherings.';
+  } else if (scores.Extraversion_Category === 'Low') {
+    extraversionGuidance = 'LOW: User prefers intimate settings and meaningful one-on-one connections. Prioritize small groups (3-6 people), quiet environments, and activities with built-in conversation time.';
+  } else {
+    extraversionGuidance = 'MEDIUM: User enjoys balance. Mix small intimate groups with moderate-sized events (10-20 people).';
+  }
+  
+  // Determine conscientiousness guidance
+  let conscientiousnessGuidance = '';
+  if (scores.Conscientiousness_Category === 'High') {
+    conscientiousnessGuidance = 'HIGH: User needs clear schedules, goals, and organization. Recommend: classes with curriculum, structured volunteer programs, scheduled meetups with agendas.';
+  } else if (scores.Conscientiousness_Category === 'Low') {
+    conscientiousnessGuidance = 'LOW: User prefers flexibility and spontaneity. Recommend: drop-in events, open workshops, flexible meetups, improvisation activities.';
+  } else {
+    conscientiousnessGuidance = 'MEDIUM: User enjoys both structure and flexibility. Mix scheduled programs with flexible options.';
+  }
+  
+  // Determine openness guidance
+  let opennessGuidance = '';
+  if (scores.Openness_Category === 'High') {
+    opennessGuidance = 'HIGH: User craves novelty and diversity. Prioritize: experimental activities, diverse cultural events, creative workshops, new experiences they haven\'t tried.';
+  } else if (scores.Openness_Category === 'Low') {
+    opennessGuidance = 'LOW: User prefers familiar, traditional activities. Prioritize: established communities, routine hobbies, familiar venues, traditional formats.';
+  } else {
+    opennessGuidance = 'MEDIUM: User enjoys both familiar and new experiences. Balance traditional activities with occasional novelty.';
+  }
+  
+  // Determine motivation guidance
+  const intrinsicGuidance = scores.Intrinsic_Motivation >= 4 
+    ? 'HIGH - User prioritizes fun and enjoyment. Activities should be entertaining and pleasurable.'
+    : scores.Intrinsic_Motivation <= 2 
+    ? 'LOW - Fun is secondary. Focus on other motivations.'
+    : 'MEDIUM - Fun matters but not primary.';
+    
+  const socialGuidance = scores.Social_Motivation >= 4
+    ? 'HIGH - User seeks connection and friendship. Prioritize community-building, recurring groups, buddy systems.'
+    : scores.Social_Motivation <= 2
+    ? 'LOW - Social aspect is secondary. Activity quality matters more than socializing.'
+    : 'MEDIUM - Social connection is nice but not essential.';
+    
+  const achievementGuidance = scores.Achievement_Motivation >= 4
+    ? 'HIGH - User wants to learn and improve. Prioritize: workshops, classes, skill-building, certifications, progression paths.'
+    : scores.Achievement_Motivation <= 2
+    ? 'LOW - User prefers casual participation without pressure to improve.'
+    : 'MEDIUM - Some learning component is appreciated.';
+  
+  // Determine social needs guidance
+  const closeFriendsCount = survey.Close_Friends_Count || '';
+  let closeFriendsGuidance = '';
+  if (closeFriendsCount === '0' || closeFriendsCount === '1-2') {
+    closeFriendsGuidance = 'CRITICAL: User has very few close friends. Prioritize welcoming, beginner-friendly groups with structured ice-breakers. Emphasize community-building and recurring meetups.';
+  } else if (closeFriendsCount === '3-5') {
+    closeFriendsGuidance = 'MODERATE: User has some friends but could use more. Balance community-building with activity-focused events.';
+  } else {
+    closeFriendsGuidance = 'GOOD: User has solid friend group. Focus on activity quality and shared interests.';
+  }
+  
+  const socialSatisfaction = survey.Social_Satisfaction || '';
+  let satisfactionGuidance = '';
+  if (socialSatisfaction.includes('Dissatisfied') || socialSatisfaction.includes('Very Dissatisfied')) {
+    satisfactionGuidance = 'LOW SATISFACTION: User is unhappy with current social life. Recommend NEW social circles, different activity types, fresh communities away from current routine.';
+  } else if (socialSatisfaction.includes('Satisfied') || socialSatisfaction.includes('Very Satisfied')) {
+    satisfactionGuidance = 'HIGH SATISFACTION: User is happy socially. Focus on activity quality and shared interests rather than friend-making.';
+  } else {
+    satisfactionGuidance = 'NEUTRAL: User is okay with current social life. Balance community-building with activity focus.';
+  }
+  
+  const lonelinessFreq = survey.Loneliness_Frequency || '';
+  let lonelinessGuidance = '';
+  if (lonelinessFreq.includes('Often') || lonelinessFreq.includes('Always') || lonelinessFreq.includes('Very Often')) {
+    lonelinessGuidance = 'HIGH LONELINESS: CRITICAL PRIORITY. User feels isolated. Prioritize: welcoming beginner groups, recurring meetups, buddy systems, structured social activities, community-building focus.';
+  } else if (lonelinessFreq.includes('Never') || lonelinessFreq.includes('Rarely')) {
+    lonelinessGuidance = 'LOW LONELINESS: User feels connected. Focus on activity quality and shared interests.';
+  } else {
+    lonelinessGuidance = 'MODERATE: User sometimes feels lonely. Include some community-building activities.';
+  }
+  
+  // Build looking for guidance
+  const lookingFor = Array.isArray(survey.Looking_For) ? survey.Looking_For : (survey.Looking_For ? [survey.Looking_For] : []);
+  const lookingForGuidance = lookingFor.map(goal => {
+    if (goal.includes('friends') || goal.includes('community')) return `  - "${goal}" → Prioritize recurring groups, community-building, welcoming environments`;
+    if (goal.includes('romantic') || goal.includes('partner')) return `  - "${goal}" → Include co-ed social events, singles mixers, activities with relationship-building potential`;
+    if (goal.includes('networking') || goal.includes('professional')) return `  - "${goal}" → Include career-related meetups, industry events, professional development`;
+    if (goal.includes('explore') || goal.includes('interests')) return `  - "${goal}" → Prioritize variety, novel activities, diverse options`;
+    if (goal.includes('fun') || goal.includes('enjoy')) return `  - "${goal}" → Emphasize entertaining, enjoyable activities`;
+    if (goal.includes('volunteer') || goal.includes('involvement')) return `  - "${goal}" → Include volunteer opportunities, civic engagement, community service`;
+    return `  - "${goal}" → Consider in recommendation selection`;
+  }).join('\n') || '  - Consider user goals when selecting recommendations';
+  
+  // Build preferences guidance
+  const freeTime = survey.Free_Time_Per_Week || '';
+  let freeTimeGuidance = '';
+  if (freeTime.includes('Less than 5') || freeTime.includes('5-10')) {
+    freeTimeGuidance = 'LIMITED TIME: Only recommend activities that fit their schedule. Prioritize: short events (1-2 hours), flexible timing, low commitment.';
+  } else if (freeTime.includes('More than 20')) {
+    freeTimeGuidance = 'PLENTY OF TIME: User has significant availability. Can recommend longer activities, multi-day events, intensive workshops.';
+  } else {
+    freeTimeGuidance = 'MODERATE TIME: Recommend activities that fit typical schedules (2-4 hours).';
+  }
+  
+  const travelDistance = survey.Travel_Distance_Willing || '';
+  let travelGuidance = '';
+  if (travelDistance.includes('Less than 5') || travelDistance.includes('5-10')) {
+    travelGuidance = 'LOCAL ONLY: Prioritize events within walking distance or short drive. Avoid recommending events far away.';
+  } else if (travelDistance.includes('15+')) {
+    travelGuidance = 'WILLING TO TRAVEL: User is open to events further away. Can include events in neighboring areas.';
+  } else {
+    travelGuidance = 'MODERATE DISTANCE: Focus on events within reasonable distance, prioritize closer options.';
+  }
+  
+  return `## HOW TO INTERPRET THIS DATA
+
+### Understanding Personality Scores:
+- **Extraversion (${scores.Extraversion_Raw}/14 - ${scores.Extraversion_Category}):**
+  - This measures how much energy the user gains from social interaction
+  - ${extraversionGuidance}
+  
+- **Conscientiousness (${scores.Conscientiousness_Raw}/14 - ${scores.Conscientiousness_Category}):**
+  - This measures preference for structure and planning
+  - ${conscientiousnessGuidance}
+  
+- **Openness (${scores.Openness_Raw}/14 - ${scores.Openness_Category}):**
+  - This measures openness to new experiences
+  - ${opennessGuidance}
+
+### Understanding Motivation Scores:
+- **Primary Motivation: ${scores.Primary_Motivation}** - This is their MAIN driver. Weight this highest.
+- **Intrinsic (${scores.Intrinsic_Motivation.toFixed(1)}/5):** ${intrinsicGuidance}
+- **Social (${scores.Social_Motivation.toFixed(1)}/5):** ${socialGuidance}
+- **Achievement (${scores.Achievement_Motivation.toFixed(1)}/5):** ${achievementGuidance}
+
+### Understanding Social Needs:
+- **Close Friends: ${closeFriendsCount}** - ${closeFriendsGuidance}
+- **Social Satisfaction: ${socialSatisfaction}** - ${satisfactionGuidance}
+- **Loneliness: ${lonelinessFreq}** - ${lonelinessGuidance}
+- **Looking For: ${Array.isArray(survey.Looking_For) ? survey.Looking_For.join(', ') : survey.Looking_For}** - Interpret each:
+${lookingForGuidance}
+
+### Understanding Preferences:
+- **Free Time: ${freeTime}** - ${freeTimeGuidance}
+- **Travel Distance: ${travelDistance}** - ${travelGuidance}
+- **Setting Preferences:**
+${buildDetailedSettingPreferences(survey)}
+
+## DECISION PRIORITY ORDER:
+
+When selecting recommendations, prioritize in this order:
+
+1. **MUST MATCH (Non-negotiable):**
+   - Interest categories (ONLY from: ${Array.isArray(survey.Interest_Categories) ? survey.Interest_Categories.join(', ') : survey.Interest_Categories})
+   - Time window (within 14 days)
+   - Travel distance (${travelDistance})
+
+2. **HIGH PRIORITY (Strongly weight):**
+${scores.Extraversion_Category === 'Low' && (lonelinessFreq.includes('Often') || lonelinessFreq.includes('Always')) ? '  - CRITICAL: Low extraversion + high loneliness = Small, welcoming groups with structured social time' : ''}
+  - ${scores.Primary_Motivation} motivation (${scores.Primary_Motivation === 'Intrinsic' ? scores.Intrinsic_Motivation.toFixed(1) : scores.Primary_Motivation === 'Social' ? scores.Social_Motivation.toFixed(1) : scores.Achievement_Motivation.toFixed(1)}/5)
+  - ${lonelinessFreq.includes('Often') || lonelinessFreq.includes('Always') ? 'HIGH LONELINESS - Prioritize community-building' : 'Social needs'}
+  - Setting preferences
+
+3. **MEDIUM PRIORITY (Consider):**
+  - Other personality traits (conscientiousness, openness)
+  - Secondary motivations
+  - Affinity groups (70/30 rule)
+
+4. **NICE TO HAVE:**
+  - Variety in categories
+  - Mix of recurring/one-time
+  - Group size diversity
+
+## COMBINING SIGNALS - DECISION MATRIX:
+
+When multiple signals point in different directions, use these rules:
+
+**Personality Conflicts:**
+- High Extraversion + Low Openness → Large groups doing familiar activities
+- Low Extraversion + High Openness → Small groups trying new things
+- High Conscientiousness + Low Extraversion → Structured small-group activities
+- Low Conscientiousness + High Extraversion → Spontaneous large-group events
+
+**Motivation Conflicts:**
+- High Social + High Achievement → Skill-building classes with strong community
+- High Intrinsic + Low Social → Fun activities that happen to be social
+- High Achievement + Low Conscientiousness → Flexible learning opportunities
+
+**Social Needs Override:**
+- If loneliness is HIGH, prioritize social connection over other factors
+- If social satisfaction is LOW, prioritize new social circles
+- If close friends count is LOW, prioritize welcoming beginner groups`;
+}
+
+/**
  * Build prompt for conceptual recommendation generation
  */
 function buildConceptualPrompt(user, survey, scores, location, count) {
@@ -84,6 +323,9 @@ function buildConceptualPrompt(user, survey, scores, location, count) {
   if (survey.Affinity_Womens?.length > 0) affinityGroups.push(`Women's: ${survey.Affinity_Womens.join(', ')}`);
   if (survey.Affinity_Young_Prof?.length > 0) affinityGroups.push(`Young Professional: ${survey.Affinity_Young_Prof.join(', ')}`);
   if (survey.Affinity_International?.length > 0) affinityGroups.push(`International: ${survey.Affinity_International.join(', ')}`);
+  
+  // Build interpretation section
+  const interpretationSection = buildInterpretationSection(user, survey, scores);
   
   return `You are an expert social psychologist and activity recommender. Generate ${count} idealized event/activity concepts that would be PERFECT for this person.
 
@@ -124,6 +366,12 @@ Preferences:
 - Travel Distance: ${survey.Travel_Distance_Willing}
 
 ${affinityGroups.length > 0 ? `Affinity Groups: ${affinityGroups.join('; ')}` : ''}
+
+---
+
+${interpretationSection}
+
+---
 
 CRITICAL REQUIREMENT - SOCIAL FOCUS:
 - ALL recommendations MUST be activities done WITH OTHER PEOPLE
