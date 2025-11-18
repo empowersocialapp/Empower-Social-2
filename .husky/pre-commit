@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run ESLint and only fail on errors (not warnings)
+npm run lint -- --max-warnings=0 || exit 1
