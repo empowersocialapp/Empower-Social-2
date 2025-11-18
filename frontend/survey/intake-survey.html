@@ -919,7 +919,6 @@
                         <button
                             type="button"
                             class="btn-secondary"
-                            onclick="loginUser()"
                             id="loginButton"
                             style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
                             Access My Recommendations
@@ -974,8 +973,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="clearForm()">Clear</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(1)">Continue</button>
+                    <button type="button" class="btn-secondary" id="clearFormBtn">Clear</button>
+                    <button type="button" class="btn-primary" id="nextPage1Btn">Continue</button>
                 </div>
             </div>
 
@@ -1065,8 +1064,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(2)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(2)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage2Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage2Btn">Continue</button>
                 </div>
             </div>
 
@@ -1109,8 +1108,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(3)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(3)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage3Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage3Btn">Continue</button>
                 </div>
             </div>
 
@@ -1200,8 +1199,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(4)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(4)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage4Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage4Btn">Continue</button>
                 </div>
             </div>
 
@@ -1220,8 +1219,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(5)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(5)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage5Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage5Btn">Continue</button>
                 </div>
             </div>
 
@@ -1237,8 +1236,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(6)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(6)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage6Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage6Btn">Continue</button>
                 </div>
             </div>
 
@@ -1302,8 +1301,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(7)">Back</button>
-                    <button type="button" class="btn-primary" onclick="nextPage(7)">Continue</button>
+                    <button type="button" class="btn-secondary" id="prevPage7Btn">Back</button>
+                    <button type="button" class="btn-primary" id="nextPage7Btn">Continue</button>
                 </div>
             </div>
 
@@ -1545,7 +1544,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(8)">Back</button>
+                    <button type="button" class="btn-secondary" id="prevPage8Btn">Back</button>
                     <button type="submit" class="btn-primary">Submit</button>
                 </div>
             </div>
@@ -1610,7 +1609,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn-secondary" onclick="prevPage(7)">Back</button>
+                    <button type="button" class="btn-secondary" id="prevPage7AltBtn">Back</button>
                     <button type="submit" class="btn-primary">Submit</button>
                 </div>
             </div>
@@ -1638,12 +1637,84 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Attach event listener to start survey button when DOM is ready
+        // Attach event listeners to all buttons when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Start survey button
             const startBtn = document.getElementById('startSurveyBtn');
             if (startBtn) {
                 startBtn.addEventListener('click', startSurvey);
             }
+
+            // Login button
+            const loginBtn = document.getElementById('loginButton');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', loginUser);
+            }
+
+            // Clear form button
+            const clearFormBtn = document.getElementById('clearFormBtn');
+            if (clearFormBtn) {
+                clearFormBtn.addEventListener('click', clearForm);
+            }
+
+            // Navigation buttons - Next pages
+            const nextPage1Btn = document.getElementById('nextPage1Btn');
+            if (nextPage1Btn) nextPage1Btn.addEventListener('click', () => nextPage(1));
+            
+            const nextPage2Btn = document.getElementById('nextPage2Btn');
+            if (nextPage2Btn) nextPage2Btn.addEventListener('click', () => nextPage(2));
+            
+            const nextPage3Btn = document.getElementById('nextPage3Btn');
+            if (nextPage3Btn) nextPage3Btn.addEventListener('click', () => nextPage(3));
+            
+            const nextPage4Btn = document.getElementById('nextPage4Btn');
+            if (nextPage4Btn) nextPage4Btn.addEventListener('click', () => nextPage(4));
+            
+            const nextPage5Btn = document.getElementById('nextPage5Btn');
+            if (nextPage5Btn) nextPage5Btn.addEventListener('click', () => nextPage(5));
+            
+            const nextPage6Btn = document.getElementById('nextPage6Btn');
+            if (nextPage6Btn) nextPage6Btn.addEventListener('click', () => nextPage(6));
+            
+            const nextPage7Btn = document.getElementById('nextPage7Btn');
+            if (nextPage7Btn) nextPage7Btn.addEventListener('click', () => nextPage(7));
+
+            // Navigation buttons - Previous pages
+            const prevPage2Btn = document.getElementById('prevPage2Btn');
+            if (prevPage2Btn) prevPage2Btn.addEventListener('click', () => prevPage(2));
+            
+            const prevPage3Btn = document.getElementById('prevPage3Btn');
+            if (prevPage3Btn) prevPage3Btn.addEventListener('click', () => prevPage(3));
+            
+            const prevPage4Btn = document.getElementById('prevPage4Btn');
+            if (prevPage4Btn) prevPage4Btn.addEventListener('click', () => prevPage(4));
+            
+            const prevPage5Btn = document.getElementById('prevPage5Btn');
+            if (prevPage5Btn) prevPage5Btn.addEventListener('click', () => prevPage(5));
+            
+            const prevPage6Btn = document.getElementById('prevPage6Btn');
+            if (prevPage6Btn) prevPage6Btn.addEventListener('click', () => prevPage(6));
+            
+            const prevPage7Btn = document.getElementById('prevPage7Btn');
+            if (prevPage7Btn) prevPage7Btn.addEventListener('click', () => prevPage(7));
+            
+            const prevPage7AltBtn = document.getElementById('prevPage7AltBtn');
+            if (prevPage7AltBtn) prevPage7AltBtn.addEventListener('click', () => prevPage(7));
+            
+            const prevPage8Btn = document.getElementById('prevPage8Btn');
+            if (prevPage8Btn) prevPage8Btn.addEventListener('click', () => prevPage(8));
+
+            // Event delegation for dynamically generated toggle buttons (Select All/Deselect All)
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-select-toggle')) {
+                    const categoryKey = e.target.getAttribute('data-category');
+                    const action = e.target.getAttribute('data-action');
+                    if (categoryKey && action) {
+                        const checked = action === 'select-all';
+                        toggleCategoryInterests(categoryKey, checked);
+                    }
+                }
+            });
         });
 
         // Login user with username
@@ -1940,8 +2011,8 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                             <h3 style="color: #FF8C42; margin: 0;">${category.icon} ${category.label}</h3>
                             <div style="display: flex; gap: 8px;">
-                                <button type="button" class="btn-select-toggle" onclick="toggleCategoryInterests('${catKey}', true)" style="font-size: 12px; padding: 6px 12px; background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer;">Select All</button>
-                                <button type="button" class="btn-select-toggle" onclick="toggleCategoryInterests('${catKey}', false)" style="font-size: 12px; padding: 6px 12px; background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer;">Deselect All</button>
+                                <button type="button" class="btn-select-toggle" data-category="${catKey}" data-action="select-all" style="font-size: 12px; padding: 6px 12px; background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer;">Select All</button>
+                                <button type="button" class="btn-select-toggle" data-category="${catKey}" data-action="deselect-all" style="font-size: 12px; padding: 6px 12px; background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer;">Deselect All</button>
                             </div>
                         </div>
                         <div class="checkbox-group" data-category="${catKey}">
