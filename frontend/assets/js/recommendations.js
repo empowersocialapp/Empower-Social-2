@@ -299,12 +299,18 @@ function parseRecommendations(text) {
   return recommendations;
 }
 
+// Store recommendation metadata for summary tracking
+let recommendationMetadata = [];
+
 /**
  * Display recommendations on the page
  */
 function displayRecommendations(recommendations, userId, userName = null, userLocation = null) {
   // Parse recommendations
   const parsedRecs = parseRecommendations(recommendations);
+  
+  // Reset metadata tracking
+  recommendationMetadata = [];
 
   // If parsing failed, show raw text with a message
   if (parsedRecs.length === 0) {
@@ -360,6 +366,13 @@ function displayRecommendations(recommendations, userId, userName = null, userLo
 
     // Generate unique ID for this recommendation card
     const recId = `rec-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Store metadata for summary tracking
+    recommendationMetadata.push({
+      recId: recId,
+      name: cleanedName,
+      status: null // 'interested', 'maybe', 'not-interested', or null
+    });
     
     // Build search URLs for "Interested" follow-up
     const searchQuery = encodeURIComponent(`${cleanedName} ${displayLocation || userLocation || ''}`);
@@ -701,6 +714,10 @@ function markInterested(recId, userId) {
   if (actions) actions.style.display = 'none';
   
   saveFeedback(recId, userId, 'interested', null);
+  
+  // Update metadata and check if all are evaluated
+  updateRecommendationStatus(recId, 'interested');
+  checkAndShowSummary(userId);
 }
 
 /**
@@ -720,6 +737,10 @@ function markMaybe(recId, userId) {
   }
   
   saveFeedback(recId, userId, 'maybe', null);
+  
+  // Update metadata and check if all are evaluated
+  updateRecommendationStatus(recId, 'maybe');
+  checkAndShowSummary(userId);
 }
 
 /**
@@ -729,12 +750,21 @@ function markNotForMe(recId, userId) {
   const card = document.querySelector(`[data-rec-id="${recId}"]`);
   if (!card) return;
   
-  card.classList.add('card-not-for-me');
+  // Don't gray out yet - wait until feedback is submitted
+  // card.classList.add('card-not-for-me');
+  
   const followup = card.querySelector(`#followup-not-for-me-${recId}`);
   const actions = card.querySelector(`#actions-${recId}`);
   
   if (followup) followup.style.display = 'block';
   if (actions) actions.style.display = 'none';
+  
+  // Update metadata - mark as evaluated
+  updateRecommendationStatus(recId, 'not-interested');
+  
+  // Check summary - even if they provide feedback later, the status is already set
+  // The summary will show once all are evaluated, and feedback can be added later
+  checkAndShowSummary(userId);
 }
 
 /**
@@ -743,6 +773,9 @@ function markNotForMe(recId, userId) {
 function submitReason(recId, reason, userId) {
   const card = document.querySelector(`[data-rec-id="${recId}"]`);
   if (!card) return;
+  
+  // Now gray out the card after feedback is submitted
+  card.classList.add('card-not-for-me');
   
   const followup = card.querySelector(`#followup-not-for-me-${recId}`);
   if (followup) {
@@ -754,6 +787,10 @@ function submitReason(recId, reason, userId) {
   }
   
   saveFeedback(recId, userId, 'not-interested', reason);
+  
+  // Update metadata and check if all are evaluated
+  updateRecommendationStatus(recId, 'not-interested');
+  checkAndShowSummary(userId);
 }
 
 /**
@@ -793,5 +830,103 @@ async function saveFeedback(recId, userId, action, reason) {
     console.error('Error saving feedback:', error);
     // Don't show error to user - feedback is non-critical
   }
+}
+
+/**
+ * Update recommendation status in metadata
+ */
+function updateRecommendationStatus(recId, status) {
+  const rec = recommendationMetadata.find(r => r.recId === recId);
+  if (rec) {
+    rec.status = status;
+  }
+}
+
+/**
+ * Check if all recommendations have been evaluated and show summary
+ */
+function checkAndShowSummary(userId) {
+  // Check if all recommendations have been evaluated
+  const allEvaluated = recommendationMetadata.length > 0 && 
+                       recommendationMetadata.every(r => r.status !== null);
+  
+  if (allEvaluated) {
+    showSummary(userId);
+  }
+}
+
+/**
+ * Show summary section after all recommendations are evaluated
+ */
+function showSummary(userId) {
+  const interested = recommendationMetadata.filter(r => r.status === 'interested');
+  const maybe = recommendationMetadata.filter(r => r.status === 'maybe');
+  
+  // Find the recommendations container
+  const container = document.querySelector('.recommendations-container');
+  if (!container) return;
+  
+  // Check if summary already exists
+  if (document.getElementById('evaluation-summary')) {
+    return; // Summary already shown
+  }
+  
+  // Create summary HTML
+  const summaryHTML = `
+    <div id="evaluation-summary" style="background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%); padding: 32px; border-radius: 16px; margin-top: 40px; border: 2px solid #FF8C42; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <h2 style="font-family: 'Montserrat', sans-serif; font-size: 28px; color: #2C2C2C; margin-bottom: 24px; font-weight: 600; text-align: center;">
+        🎉 Nice work! Here's your plan:
+      </h2>
+      
+      ${interested.length > 0 ? `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Montserrat', sans-serif; font-size: 18px; color: #4CAF50; margin-bottom: 12px; font-weight: 600;">
+            Ready to try (${interested.length}):
+          </h3>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            ${interested.map(rec => `
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <span style="color: #2C2C2C; font-size: 15px;">• ${escapeHtml(rec.name)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      ${maybe.length > 0 ? `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'Montserrat', sans-serif; font-size: 18px; color: #666; margin-bottom: 12px; font-weight: 600;">
+            Saved for later (${maybe.length}):
+          </h3>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            ${maybe.map(rec => `
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <span style="color: #2C2C2C; font-size: 15px;">• ${escapeHtml(rec.name)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <div style="text-align: center; margin-top: 32px;">
+        ${userId ? `
+          <button type="button" class="btn-primary" onclick="regenerateRecommendations('${userId}')" style="font-size: 16px; padding: 14px 32px;">
+            Get New Recommendations
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  
+  // Append summary to container
+  container.insertAdjacentHTML('beforeend', summaryHTML);
+  
+  // Smooth scroll to summary
+  setTimeout(() => {
+    document.getElementById('evaluation-summary').scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    });
+  }, 300);
 }
 
