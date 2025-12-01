@@ -135,6 +135,145 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Feedback Button Styles */
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-feedback {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .btn-feedback:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-interested {
+            color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .btn-interested:hover {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        .btn-maybe {
+            color: #666;
+            border-color: #ddd;
+        }
+
+        .btn-maybe:hover {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .btn-not-for-me {
+            color: #999;
+            border-color: #ddd;
+        }
+
+        .btn-not-for-me:hover {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .card-interested {
+            border-left: 4px solid #4CAF50 !important;
+        }
+
+        .card-maybe {
+            opacity: 0.85;
+        }
+
+        .card-not-for-me {
+            opacity: 0.5;
+        }
+
+        .card-followup {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 3px solid #FF8C42;
+        }
+
+        .card-followup p {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .btn-search {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            background: #FF8C42;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-search:hover {
+            background: #e67a35;
+            transform: translateY(-1px);
+        }
+
+        .feedback-reasons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .reason-chip {
+            padding: 6px 12px;
+            border-radius: 16px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s ease;
+            color: #666;
+        }
+
+        .reason-chip:hover {
+            background: #e0e0e0;
+            border-color: #999;
+        }
+
+        .saved-label {
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .feedback-thanks {
+            color: #4CAF50;
+            font-size: 14px;
+            font-weight: 500;
+        }
     </style>
     <!-- API Configuration (must load before other scripts) -->
     <script src="../config.js"></script>

@@ -358,8 +358,16 @@ function displayRecommendations(recommendations, userId, userName = null, userLo
       ? '<span style="display: inline-block; background: #4CAF50; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">Recurring</span>'
       : '<span style="display: inline-block; background: #2196F3; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">One-Time</span>';
 
+    // Generate unique ID for this recommendation card
+    const recId = `rec-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Build search URLs for "Interested" follow-up
+    const searchQuery = encodeURIComponent(`${cleanedName} ${displayLocation || userLocation || ''}`);
+    const meetupUrl = `https://www.meetup.com/find/?keywords=${searchQuery}`;
+    const googleUrl = `https://www.google.com/search?q=${searchQuery}`;
+
     return `
-            <div style="background: #f9f9f9; padding: 24px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #f0f0f0; transition: all 0.3s ease;">
+            <div class="recommendation-card" data-rec-id="${recId}" style="background: #f9f9f9; padding: 24px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #f0f0f0; transition: all 0.3s ease;">
                 <div style="margin-bottom: 12px;">
                     <h3 style="font-family: 'Montserrat', sans-serif; font-size: 20px; color: #2C2C2C; margin: 0 0 8px 0; font-weight: 600;">
                         ${index + 1}. ${nameDisplay} ${recurringBadge}
@@ -372,6 +380,41 @@ function displayRecommendations(recommendations, userId, userName = null, userLo
                     ${formatWhyMatches(rec.whyMatches)}
                 </div>
                 ` : ''}
+                
+                <!-- Feedback Actions -->
+                <div class="card-actions" id="actions-${recId}">
+                    <button class="btn-feedback btn-interested" onclick="markInterested('${recId}', '${userId || ''}')">
+                        👍 Interested
+                    </button>
+                    <button class="btn-feedback btn-maybe" onclick="markMaybe('${recId}', '${userId || ''}')">
+                        🤔 Maybe Later
+                    </button>
+                    <button class="btn-feedback btn-not-for-me" onclick="markNotForMe('${recId}', '${userId || ''}')">
+                        👎 Not for Me
+                    </button>
+                </div>
+                
+                <!-- Follow-up for "Interested" -->
+                <div class="card-followup card-followup-interested" id="followup-interested-${recId}" style="display:none;">
+                    <p style="margin-bottom: 12px; font-size: 14px; color: #4CAF50; font-weight: 600;">✓ Great choice! Here's how to find it:</p>
+                    <a href="${meetupUrl}" target="_blank" rel="noopener noreferrer" class="btn-search">Find on Meetup</a>
+                    <a href="${googleUrl}" target="_blank" rel="noopener noreferrer" class="btn-search">Search Google</a>
+                </div>
+                
+                <!-- Follow-up for "Not for Me" -->
+                <div class="card-followup card-followup-not-for-me" id="followup-not-for-me-${recId}" style="display:none;">
+                    <p class="feedback-prompt" style="margin-bottom: 8px; font-size: 13px; color: #666;">Help us improve - what didn't fit? (optional)</p>
+                    <div class="feedback-reasons">
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'too-far', '${userId || ''}')">Too far away</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'wrong-time', '${userId || ''}')">Wrong time/schedule</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'not-my-style', '${userId || ''}')">Not my style</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'too-expensive', '${userId || ''}')">Too expensive</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'wrong-group-size', '${userId || ''}')">Wrong group size</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'already-similar', '${userId || ''}')">Already doing similar</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'not-interested', '${userId || ''}')">Just not interested</button>
+                        <button class="reason-chip" onclick="submitReason('${recId}', 'skip', '${userId || ''}')">Skip</button>
+                    </div>
+                </div>
             </div>
         `;
   }).join('');
@@ -640,6 +683,115 @@ function formatWhyMatches(text) {
     // Old format - just display as-is (already warmified above)
     return `<div style="font-size: 14px; color: #FF8C42; font-weight: 600; margin-bottom: 8px;">Why this matches you:</div>
                 <div style="font-size: 14px; color: #555; line-height: 1.6;">${escapeHtml(warmText)}</div>`;
+  }
+}
+
+/**
+ * Mark a recommendation as "Interested"
+ */
+function markInterested(recId, userId) {
+  const card = document.querySelector(`[data-rec-id="${recId}"]`);
+  if (!card) return;
+  
+  card.classList.add('card-interested');
+  const followup = card.querySelector(`#followup-interested-${recId}`);
+  const actions = card.querySelector(`#actions-${recId}`);
+  
+  if (followup) followup.style.display = 'block';
+  if (actions) actions.style.display = 'none';
+  
+  saveFeedback(recId, userId, 'interested', null);
+}
+
+/**
+ * Mark a recommendation as "Maybe Later"
+ */
+function markMaybe(recId, userId) {
+  const card = document.querySelector(`[data-rec-id="${recId}"]`);
+  if (!card) return;
+  
+  card.classList.add('card-maybe');
+  const actions = card.querySelector(`#actions-${recId}`);
+  
+  if (actions) {
+    actions.innerHTML = '<span class="saved-label">🕐 Saved for later</span>';
+    actions.style.borderTop = 'none';
+    actions.style.paddingTop = '0';
+  }
+  
+  saveFeedback(recId, userId, 'maybe', null);
+}
+
+/**
+ * Mark a recommendation as "Not for Me"
+ */
+function markNotForMe(recId, userId) {
+  const card = document.querySelector(`[data-rec-id="${recId}"]`);
+  if (!card) return;
+  
+  card.classList.add('card-not-for-me');
+  const followup = card.querySelector(`#followup-not-for-me-${recId}`);
+  const actions = card.querySelector(`#actions-${recId}`);
+  
+  if (followup) followup.style.display = 'block';
+  if (actions) actions.style.display = 'none';
+}
+
+/**
+ * Submit reason for "Not for Me" feedback
+ */
+function submitReason(recId, reason, userId) {
+  const card = document.querySelector(`[data-rec-id="${recId}"]`);
+  if (!card) return;
+  
+  const followup = card.querySelector(`#followup-not-for-me-${recId}`);
+  if (followup) {
+    if (reason === 'skip') {
+      followup.innerHTML = '<span class="feedback-thanks">Thanks for the feedback!</span>';
+    } else {
+      followup.innerHTML = '<span class="feedback-thanks">✓ Thanks for the feedback!</span>';
+    }
+  }
+  
+  saveFeedback(recId, userId, 'not-interested', reason);
+}
+
+/**
+ * Save feedback to backend
+ */
+async function saveFeedback(recId, userId, action, reason) {
+  if (!userId) {
+    console.log('No userId, skipping feedback save');
+    return;
+  }
+  
+  try {
+    const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${API_BASE_URL}/api/recommendation-feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: userId,
+        recommendationId: recId,
+        action: action,  // 'interested', 'maybe', 'not-interested'
+        reason: reason,  // null or one of the reason codes
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to save feedback:', response.status);
+    } else {
+      const result = await response.json();
+      if (!result.success) {
+        console.warn('Feedback save returned error:', result.error);
+      }
+    }
+  } catch (error) {
+    console.error('Error saving feedback:', error);
+    // Don't show error to user - feedback is non-critical
   }
 }
 

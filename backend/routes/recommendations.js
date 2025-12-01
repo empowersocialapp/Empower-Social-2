@@ -630,5 +630,72 @@ router.post('/test/create-test-user', async (req, res) => {
 });
 
 
+/**
+ * POST /api/recommendation-feedback
+ * Save user feedback on recommendations
+ */
+router.post('/recommendation-feedback', async (req, res) => {
+  try {
+    const { userId, recommendationId, action, reason, timestamp } = req.body;
+
+    if (!userId || !recommendationId || !action) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId, recommendationId, and action are required'
+      });
+    }
+
+    // Validate action
+    const validActions = ['interested', 'maybe', 'not-interested'];
+    if (!validActions.includes(action)) {
+      return res.status(400).json({
+        success: false,
+        error: `action must be one of: ${validActions.join(', ')}`
+      });
+    }
+
+    // Save to Airtable (or log for now if table doesn't exist)
+    try {
+      // Try to create record in Recommendation_Feedback table
+      const fields = {
+        User: [userId],
+        Recommendation_ID: recommendationId,
+        Action: action,
+        Reason: reason || null,
+        Timestamp: timestamp || new Date().toISOString()
+      };
+
+      await base('Recommendation_Feedback').create([{ fields }]);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Feedback saved successfully'
+      });
+    } catch (airtableError) {
+      // If table doesn't exist, log the feedback for now
+      console.log('Recommendation Feedback (table may not exist):', {
+        userId,
+        recommendationId,
+        action,
+        reason,
+        timestamp
+      });
+
+      // Still return success - feedback is non-critical
+      return res.status(200).json({
+        success: true,
+        message: 'Feedback logged (table may need to be created)',
+        warning: 'Recommendation_Feedback table may not exist in Airtable'
+      });
+    }
+  } catch (error) {
+    console.error('Error saving recommendation feedback:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error'
+    });
+  }
+});
+
 module.exports = router;
 
