@@ -57,7 +57,7 @@ async function createUser(userData) {
     ]);
 
     const record = records[0];
-    
+
     return {
       success: true,
       data: {
@@ -81,14 +81,14 @@ async function createUser(userData) {
  * @returns {Array} Mapped values for Airtable
  */
 function mapAffinityValues(values, category) {
-  if (!values || values.length === 0) return [];
-  
+  if (!values || values.length === 0) {return [];}
+
   // Filter out empty strings
   const filteredValues = values.filter(v => v && v.trim && v.trim().length > 0);
-  if (filteredValues.length === 0) return [];
-  
+  if (filteredValues.length === 0) {return [];}
+
   console.log(`Mapping affinity values for ${category}:`, filteredValues);
-  
+
   const mappings = {
     faith: {
       'christian-protestant': 'Christian',  // Airtable: "Christian"
@@ -147,7 +147,7 @@ function mapAffinityValues(values, category) {
       'language-learners': 'Language learners'  // Added for future use
     }
   };
-  
+
   const categoryMap = mappings[category] || {};
   const mapped = filteredValues
     .map(value => {
@@ -179,7 +179,7 @@ async function createSurveyResponse(surveyData, userId) {
     console.log('Raw surveyData.affinityGroups:', JSON.stringify(surveyData.affinityGroups, null, 2));
 
     const { personality, motivation, social, interests, preferences, affinityGroups } = surveyData;
-    
+
     console.log('Extracted affinityGroups:', JSON.stringify(affinityGroups, null, 2));
 
     // Map frontend category keys to Airtable labels
@@ -204,23 +204,23 @@ async function createSurveyResponse(surveyData, userId) {
         return categoryLabelMap[key] || key; // Use mapped label or fallback to original
       })
       .filter(label => label && label.trim().length > 0); // Filter out any empty mapped values
-    
+
     console.log('=== Interest Categories Mapping ===');
     console.log('Frontend categories:', interests?.categories);
     console.log('Mapped categories:', interestCategories);
 
     // Map Close_Friends_Count to Airtable format (select field with ranges)
     let closeFriendsCount = social?.closeFriends;
-    
+
     // Handle empty string, null, or undefined first
     if (closeFriendsCount === '' || closeFriendsCount === null || closeFriendsCount === undefined) {
       closeFriendsCount = undefined; // Will be removed by cleanup if truly empty
     } else {
       // Convert to number if it's a string, or use as-is if already a number
-      let num = typeof closeFriendsCount === 'string' 
-        ? parseInt(closeFriendsCount.trim()) 
+      let num = typeof closeFriendsCount === 'string'
+        ? parseInt(closeFriendsCount.trim())
         : closeFriendsCount;
-      
+
       // Always map to the range format that matches Airtable options
       if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
         // Map to ranges that match Airtable select options: blank, "0-2", "3-5", "6-10", "10+"
@@ -245,7 +245,7 @@ async function createSurveyResponse(surveyData, userId) {
     let socialSatisfaction = social?.satisfaction;
     if (socialSatisfaction) {
       let satisfactionValue;
-      
+
       // Extract number from string like "Neutral (4)" or just use the number if it's already numeric
       if (typeof socialSatisfaction === 'string') {
         const match = socialSatisfaction.match(/\((\d+)\)/);
@@ -258,7 +258,7 @@ async function createSurveyResponse(surveyData, userId) {
       } else {
         satisfactionValue = parseInt(socialSatisfaction);
       }
-      
+
       // Map 1-7 scale to Airtable options (common satisfaction scale)
       if (!isNaN(satisfactionValue) && satisfactionValue >= 1 && satisfactionValue <= 7) {
         const satisfactionMap = {
@@ -289,7 +289,7 @@ async function createSurveyResponse(surveyData, userId) {
       if (typeof lonelinessFrequency !== 'string') {
         lonelinessFrequency = String(lonelinessFrequency);
       }
-      
+
       // Extract the number from format like "Very Often (5)" or "Always (5)"
       const match = lonelinessFrequency.match(/\((\d+)\)/);
       if (match) {
@@ -316,7 +316,7 @@ async function createSurveyResponse(surveyData, userId) {
         };
         lonelinessFrequency = labelMap[label] || lonelinessFrequency;
       }
-      
+
       if (lonelinessFrequency.trim().length === 0) {
         lonelinessFrequency = undefined;
       }
@@ -325,7 +325,7 @@ async function createSurveyResponse(surveyData, userId) {
     // Build fields object for Airtable
     const fields = {
       User: [userId], // Link to User record
-      
+
       // Personality questions (mapped to Airtable field names)
       Q1_Extraverted_Enthusiastic: personality?.q1,
       Q6_Reserved_Quiet: personality?.q6,
@@ -333,7 +333,7 @@ async function createSurveyResponse(surveyData, userId) {
       Q8_Disorganized_Careless: personality?.q8,
       Q5_Open_Complex: personality?.q5,
       Q10_Conventional_Uncreative: personality?.q10,
-      
+
       // Motivation questions (mapped to Airtable field names)
       M1_Enjoyable_Fun: motivation?.m1,
       M2_Time_With_People: motivation?.m2,
@@ -341,23 +341,23 @@ async function createSurveyResponse(surveyData, userId) {
       M4_Energized_Engaged: motivation?.m4,
       M5_Meet_New_People: motivation?.m5,
       M6_Challenge_Myself: motivation?.m6,
-      
+
       // Social fields (mapped to match Airtable select options)
       Close_Friends_Count: closeFriendsCount,
       Social_Satisfaction: socialSatisfaction,
       Loneliness_Frequency: lonelinessFrequency,
       Looking_For: (social?.lookingFor || []).filter(v => v && v.trim && v.trim().length > 0),
-      
+
       // Interests (mapped to Airtable labels)
       Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
       Specific_Interests: interests?.specific && interests.specific.trim().length > 0 ? interests.specific : undefined,
-      
+
       // Preferences - only set to undefined if truly missing, not if empty string
-      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0 
-        ? preferences.freeTime.trim() 
+      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0
+        ? preferences.freeTime.trim()
         : (preferences?.freeTime || undefined),
-      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0 
-        ? preferences.travelDistance.trim() 
+      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0
+        ? preferences.travelDistance.trim()
         : (preferences?.travelDistance || undefined),
       Pref_Indoor: preferences?.indoor || false,
       Pref_Outdoor: preferences?.outdoor || false,
@@ -365,7 +365,7 @@ async function createSurveyResponse(surveyData, userId) {
       Pref_Relaxed_Lowkey: preferences?.relaxed || false,
       Pref_Structured: preferences?.structured || false,
       Pref_Spontaneous: preferences?.spontaneous || false,
-      
+
       // Affinity groups (6 multiple-select fields) - map frontend values to Airtable options
       // Return empty array instead of undefined - cleanup will handle empty arrays for multi-select fields
       Affinity_Faith_Based: mapAffinityValues(affinityGroups?.faith || [], 'faith'),
@@ -379,10 +379,10 @@ async function createSurveyResponse(surveyData, userId) {
     // Remove undefined, null, empty string, and empty array values
     // This prevents Airtable from trying to create new select options with invalid values
     // Multi-select fields can have empty arrays (Airtable handles this)
-    const multiSelectFields = ['Affinity_Faith_Based', 'Affinity_LGBTQ', 'Affinity_Cultural_Ethnic', 
-                                 'Affinity_Womens', 'Affinity_Young_Prof', 'Affinity_International',
-                                 'Looking_For', 'Interest_Categories'];
-    
+    const multiSelectFields = ['Affinity_Faith_Based', 'Affinity_LGBTQ', 'Affinity_Cultural_Ethnic',
+      'Affinity_Womens', 'Affinity_Young_Prof', 'Affinity_International',
+      'Looking_For', 'Interest_Categories'];
+
     Object.keys(fields).forEach(key => {
       const value = fields[key];
       if (value === undefined || value === null || value === '') {
@@ -415,7 +415,7 @@ async function createSurveyResponse(surveyData, userId) {
     ]);
 
     const record = records[0];
-    
+
     return {
       success: true,
       data: {
@@ -425,7 +425,7 @@ async function createSurveyResponse(surveyData, userId) {
     };
   } catch (error) {
     console.error('Error creating survey response:', error);
-    
+
     // Enhanced error logging for select field issues
     if (error.message && error.message.includes('INVALID_MULTIPLE_CHOICE_OPTIONS')) {
       console.error('=== SELECT FIELD ERROR ===');
@@ -434,7 +434,7 @@ async function createSurveyResponse(surveyData, userId) {
       console.error('Check your Airtable "Interest_Categories" field options and make sure they match exactly.');
       console.error('Current mapping:', categoryLabelMap);
     }
-    
+
     return {
       success: false,
       error: error.message || 'Failed to create survey response record'
@@ -471,11 +471,11 @@ async function createCalculatedScores(userId, surveyResponseId) {
     ]);
 
     const record = records[0];
-    
+
     // Fetch the record again to get the calculated fields
     // Airtable formulas are calculated immediately, but we need to retrieve the full record
     const fullRecord = await base('Calculated_Scores').find(record.id);
-    
+
     return {
       success: true,
       data: {
@@ -557,7 +557,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
     console.log('Raw surveyData.affinityGroups:', JSON.stringify(surveyData.affinityGroups, null, 2));
 
     const { personality, motivation, social, interests, preferences, affinityGroups } = surveyData;
-    
+
     console.log('Extracted affinityGroups:', JSON.stringify(affinityGroups, null, 2));
 
     // Map frontend category keys to Airtable labels (same as createSurveyResponse)
@@ -581,23 +581,23 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
         return categoryLabelMap[key] || key;
       })
       .filter(label => label && label.trim().length > 0);
-    
+
     console.log('=== Interest Categories Mapping ===');
     console.log('Frontend categories:', interests?.categories);
     console.log('Mapped categories:', interestCategories);
 
     // Map Close_Friends_Count to Airtable format (same as createSurveyResponse)
     let closeFriendsCount = social?.closeFriends;
-    
+
     // Handle empty string, null, or undefined first
     if (closeFriendsCount === '' || closeFriendsCount === null || closeFriendsCount === undefined) {
       closeFriendsCount = undefined; // Will be removed by cleanup if truly empty
     } else {
       // Convert to number if it's a string, or use as-is if already a number
-      let num = typeof closeFriendsCount === 'string' 
-        ? parseInt(closeFriendsCount.trim()) 
+      let num = typeof closeFriendsCount === 'string'
+        ? parseInt(closeFriendsCount.trim())
         : closeFriendsCount;
-      
+
       if (num !== undefined && num !== null && !isNaN(num) && num >= 0) {
         if (num <= 2) {
           closeFriendsCount = '0-2';
@@ -617,7 +617,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
     let socialSatisfaction = social?.satisfaction;
     if (socialSatisfaction) {
       let satisfactionValue;
-      
+
       // Extract number from string like "Neutral (4)" or just use the number if it's already numeric
       if (typeof socialSatisfaction === 'string') {
         const match = socialSatisfaction.match(/\((\d+)\)/);
@@ -629,7 +629,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       } else {
         satisfactionValue = parseInt(socialSatisfaction);
       }
-      
+
       // Map 1-7 scale to Airtable options
       if (!isNaN(satisfactionValue) && satisfactionValue >= 1 && satisfactionValue <= 7) {
         const satisfactionMap = {
@@ -657,7 +657,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       if (typeof lonelinessFrequency !== 'string') {
         lonelinessFrequency = String(lonelinessFrequency);
       }
-      
+
       // Extract the number from format like "Very Often (5)" or "Always (5)"
       const match = lonelinessFrequency.match(/\((\d+)\)/);
       if (match) {
@@ -684,7 +684,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
         };
         lonelinessFrequency = labelMap[label] || lonelinessFrequency;
       }
-      
+
       if (lonelinessFrequency.trim().length === 0) {
         lonelinessFrequency = undefined;
       }
@@ -698,28 +698,28 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       Q8_Disorganized_Careless: personality?.q8,
       Q5_Open_Complex: personality?.q5,
       Q10_Conventional_Uncreative: personality?.q10,
-      
+
       M1_Enjoyable_Fun: motivation?.m1,
       M2_Time_With_People: motivation?.m2,
       M3_Develop_Skills: motivation?.m3,
       M4_Energized_Engaged: motivation?.m4,
       M5_Meet_New_People: motivation?.m5,
       M6_Challenge_Myself: motivation?.m6,
-      
+
       Close_Friends_Count: closeFriendsCount,
       Social_Satisfaction: socialSatisfaction,
       Loneliness_Frequency: lonelinessFrequency,
       Looking_For: (social?.lookingFor || []).filter(v => v && v.trim && v.trim().length > 0),
-      
+
       Interest_Categories: interestCategories.length > 0 ? interestCategories : undefined,
       Specific_Interests: interests?.specific || undefined,
-      
+
       // Preferences - only set to undefined if truly missing, not if empty string
-      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0 
-        ? preferences.freeTime.trim() 
+      Free_Time_Per_Week: preferences?.freeTime && typeof preferences.freeTime === 'string' && preferences.freeTime.trim().length > 0
+        ? preferences.freeTime.trim()
         : (preferences?.freeTime || undefined),
-      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0 
-        ? preferences.travelDistance.trim() 
+      Travel_Distance_Willing: preferences?.travelDistance && typeof preferences.travelDistance === 'string' && preferences.travelDistance.trim().length > 0
+        ? preferences.travelDistance.trim()
         : (preferences?.travelDistance || undefined),
       Pref_Indoor: preferences?.indoor || false,
       Pref_Outdoor: preferences?.outdoor || false,
@@ -727,7 +727,7 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
       Pref_Relaxed_Lowkey: preferences?.relaxed || false,
       Pref_Structured: preferences?.structured || false,
       Pref_Spontaneous: preferences?.spontaneous || false,
-      
+
       // Affinity groups - return empty array instead of undefined, cleanup will handle empty arrays for multi-select fields
       Affinity_Faith_Based: mapAffinityValues(affinityGroups?.faith || [], 'faith'),
       Affinity_LGBTQ: mapAffinityValues(affinityGroups?.lgbtq || [], 'lgbtq'),
@@ -739,10 +739,10 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
 
     // Remove undefined, null, empty string, and empty array values
     // Multi-select fields can have empty arrays (Airtable handles this)
-    const multiSelectFields = ['Affinity_Faith_Based', 'Affinity_LGBTQ', 'Affinity_Cultural_Ethnic', 
-                                 'Affinity_Womens', 'Affinity_Young_Prof', 'Affinity_International',
-                                 'Looking_For', 'Interest_Categories'];
-    
+    const multiSelectFields = ['Affinity_Faith_Based', 'Affinity_LGBTQ', 'Affinity_Cultural_Ethnic',
+      'Affinity_Womens', 'Affinity_Young_Prof', 'Affinity_International',
+      'Looking_For', 'Interest_Categories'];
+
     Object.keys(fields).forEach(key => {
       const value = fields[key];
       if (value === undefined || value === null || value === '') {
@@ -780,13 +780,13 @@ async function updateSurveyResponse(surveyResponseId, surveyData) {
     };
   } catch (error) {
     console.error('Error updating survey response:', error);
-    
+
     // Enhanced error logging for select field issues
     if (error.message && error.message.includes('INVALID_MULTIPLE_CHOICE_OPTIONS')) {
       console.error('=== SELECT FIELD ERROR ===');
       console.error('This error means a value being sent doesn\'t match Airtable\'s select options.');
     }
-    
+
     return {
       success: false,
       error: error.message || 'Failed to update survey response record'
@@ -816,7 +816,7 @@ async function updateCalculatedScores(userId, surveyResponseId) {
         maxRecords: 100
       })
       .firstPage();
-    
+
     // Filter in JavaScript to find matching record
     calculatedScores = calculatedScores.filter(record => {
       const userLinks = record.fields.User || [];

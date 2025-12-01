@@ -10,23 +10,23 @@ const PORT = process.env.PORT || 3000;
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
+    if (!origin) {return callback(null, true);}
+
     // Allow localhost for development
     if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
       return callback(null, true);
     }
-    
+
     // Allow Amplify domains
     if (origin.includes('amplifyapp.com') || origin.includes('amplify.aws')) {
       return callback(null, true);
     }
-    
+
     // Allow custom domains (add your production domain here)
     // if (origin.includes('yourdomain.com')) {
     //   return callback(null, true);
     // }
-    
+
     callback(null, true); // Allow all origins for now - restrict in production
   },
   credentials: true
@@ -74,7 +74,7 @@ app.use((err, req, res, next) => {
 
   // Don't leak error details in production
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   res.status(err.status || 500).json({
     success: false,
     error: err.message || 'Internal server error',

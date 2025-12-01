@@ -37,7 +37,7 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
         error: 'User not found or user data is invalid'
       };
     }
-    
+
     // 2. Get survey response (use provided ID or query for latest)
     let surveyResponse;
     if (surveyResponseId) {
@@ -49,25 +49,25 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
           maxRecords: 1
         })
         .firstPage();
-      
+
       if (surveyResponses.length === 0) {
         return {
           success: false,
           error: 'No survey response found for user'
         };
       }
-      
+
       surveyResponse = surveyResponses[0];
       surveyResponseId = surveyResponse.id;
     }
-    
+
     if (!surveyResponse || !surveyResponse.fields) {
       return {
         success: false,
         error: 'Survey response data is invalid'
       };
     }
-    
+
     // 3. Get calculated scores (use provided ID or query for latest)
     let scores;
     if (calculatedScoresId) {
@@ -79,25 +79,25 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
           maxRecords: 1
         })
         .firstPage();
-      
+
       if (calculatedScores.length === 0) {
         return {
           success: false,
           error: 'No calculated scores found for user'
         };
       }
-      
+
       scores = calculatedScores[0];
       calculatedScoresId = scores.id;
     }
-    
+
     if (!scores || !scores.fields) {
       return {
         success: false,
         error: 'Calculated scores data is invalid'
       };
     }
-    
+
     // 4. Fetch real events from APIs (with timeout to prevent long waits)
     console.log('Fetching real events...');
     const zipcode = user.fields?.Zipcode;
@@ -107,7 +107,7 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
         error: 'User zipcode is required for recommendations'
       };
     }
-    
+
     const userProfile = {
       zipcode: zipcode,
       interests: {
@@ -127,12 +127,12 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
         international: surveyResponse.fields.Affinity_International || []
       }
     };
-    
+
     // Fetch events with 15-second timeout to prevent long waits
     let realEvents = [];
     try {
       const fetchPromise = fetchRealEvents(userProfile);
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Event fetching timeout after 15 seconds')), 15000)
       );
       realEvents = await Promise.race([fetchPromise, timeoutPromise]);
@@ -141,7 +141,7 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       console.warn('Event fetching timed out or failed, continuing without events:', error.message);
       realEvents = []; // Continue without events
     }
-    
+
     if (realEvents.length > 0) {
       console.log('Sample events:', realEvents.slice(0, 3).map(e => ({ name: e.name, source: e.source, url: e.url })));
     } else {
@@ -151,20 +151,20 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       }
       // Otherwise silently continue - recommendations will be conceptual
     }
-    
+
     // 5. Build the prompt using template (now with real events)
     const promptText = await buildPrompt(user.fields, surveyResponse.fields, scores.fields, realEvents, recommendationsCount);
-    
+
     // 6. Calculate max_tokens based on number of recommendations
     // Each recommendation is ~250-300 tokens, so: count * 300 + buffer
     const maxTokens = Math.max(1000, recommendationsCount * 300 + 500);
-    
+
     // Add timeout to prevent hanging (90 seconds max for legacy system)
     const timeoutMs = 90000; // 90 seconds
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('OpenAI API timeout after 90 seconds')), timeoutMs)
     );
-    
+
     // 6. Send to GPT-4-turbo
     const apiCallPromise = openai.chat.completions.create({
       model: 'gpt-4-turbo',
@@ -181,11 +181,11 @@ async function generateRecommendations(userId, surveyResponseId = null, calculat
       temperature: 0.7,
       max_tokens: maxTokens
     });
-    
+
     const completion = await Promise.race([apiCallPromise, timeoutPromise]);
-    
+
     const recommendations = completion.choices[0].message.content;
-    
+
     return {
       success: true,
       data: {
@@ -235,7 +235,7 @@ async function savePromptToAirtable(userId, surveyResponseId, calculatedScoresId
     ]);
 
     const record = records[0];
-    
+
     return {
       success: true,
       data: {
@@ -265,19 +265,19 @@ async function buildPrompt(userData, surveyData, scoresData, realEvents = [], re
   const extraversionInterp = getExtraversionInterpretation(scoresData.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scoresData.Conscientiousness_Category);
   const opennessInterp = getOpennessInterpretation(scoresData.Openness_Category);
-  
+
   // Build setting preferences string
   const settingPrefs = buildSettingPreferences(surveyData);
-  
+
   // Build affinity groups section
   const affinityGroups = buildAffinityGroupsSection(surveyData);
-  
+
   // Build interpretation section
   const interpretationSection = buildInterpretationSection(userData, surveyData, scoresData);
-  
+
   // Get location from zipcode using geocoding
   const location = await getLocation(userData.Zipcode);
-  
+
   // Build the full prompt
   const prompt = `
 You are an expert social activity recommendation engine for Empower Social, a platform that matches people with events, activities, and communities based on psychology and personality - not just interests.
@@ -461,8 +461,8 @@ ${realEvents.length > 0 ? formatRealEventsForPrompt(realEvents) : 'No real event
 
 ## YOUR TASK:
 
-${realEvents.length > 0 
-  ? `CRITICAL: You MUST select and recommend events ONLY from the REAL EVENTS list above. Do NOT create fictional events. 
+${realEvents.length > 0
+    ? `CRITICAL: You MUST select and recommend events ONLY from the REAL EVENTS list above. Do NOT create fictional events. 
 
 Requirements:
 - Use ONLY events from the REAL EVENTS list (all events in the list are already filtered to within 14 days)
@@ -472,7 +472,7 @@ Requirements:
 - **MANDATORY: Every recommendation MUST include a "URL:" field with the actual URL from the event list**
 - **MANDATORY: Verify the event date is within 14 days - all events in the list should already meet this criteria**
 - Do NOT make up event names, dates, locations, or URLs`
-  : `Since no real events were found, provide ${recommendationsCount} conceptual recommendations based on the user profile. For each recommendation, include a "URL:" field with a search link or relevant website where the user can find similar events. Clearly indicate these are suggestions for the user to search for, and provide guidance on where to find similar events.`}
+    : `Since no real events were found, provide ${recommendationsCount} conceptual recommendations based on the user profile. For each recommendation, include a "URL:" field with a search link or relevant website where the user can find similar events. Clearly indicate these are suggestions for the user to search for, and provide guidance on where to find similar events.`}
 
 Please provide ${recommendationsCount} personalized recommendations following all guidelines above.
 
@@ -515,12 +515,12 @@ function getOpennessInterpretation(category) {
 
 function buildSettingPreferences(surveyData) {
   const prefs = [];
-  if (surveyData.Pref_Indoor) prefs.push('Indoor');
-  if (surveyData.Pref_Outdoor) prefs.push('Outdoor');
-  if (surveyData.Pref_Physical_Active) prefs.push('Physical/Active');
-  if (surveyData.Pref_Relaxed_Lowkey) prefs.push('Relaxed/Low-key');
-  if (surveyData.Pref_Structured) prefs.push('Structured');
-  if (surveyData.Pref_Spontaneous) prefs.push('Spontaneous');
+  if (surveyData.Pref_Indoor) {prefs.push('Indoor');}
+  if (surveyData.Pref_Outdoor) {prefs.push('Outdoor');}
+  if (surveyData.Pref_Physical_Active) {prefs.push('Physical/Active');}
+  if (surveyData.Pref_Relaxed_Lowkey) {prefs.push('Relaxed/Low-key');}
+  if (surveyData.Pref_Structured) {prefs.push('Structured');}
+  if (surveyData.Pref_Spontaneous) {prefs.push('Spontaneous');}
   return prefs.length > 0 ? prefs.join(', ') : 'No specific preferences';
 }
 
@@ -569,7 +569,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   const extraversionInterp = getExtraversionInterpretation(scoresData.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scoresData.Conscientiousness_Category);
   const opennessInterp = getOpennessInterpretation(scoresData.Openness_Category);
-  
+
   // Determine extraversion guidance
   let extraversionGuidance = '';
   if (scoresData.Extraversion_Category === 'High') {
@@ -579,7 +579,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     extraversionGuidance = 'MEDIUM: User enjoys balance. Mix small intimate groups with moderate-sized events (10-20 people).';
   }
-  
+
   // Determine conscientiousness guidance
   let conscientiousnessGuidance = '';
   if (scoresData.Conscientiousness_Category === 'High') {
@@ -589,7 +589,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     conscientiousnessGuidance = 'MEDIUM: User enjoys both structure and flexibility. Mix scheduled programs with flexible options.';
   }
-  
+
   // Determine openness guidance
   let opennessGuidance = '';
   if (scoresData.Openness_Category === 'High') {
@@ -599,26 +599,26 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     opennessGuidance = 'MEDIUM: User enjoys both familiar and new experiences. Balance traditional activities with occasional novelty.';
   }
-  
+
   // Determine motivation guidance
-  const intrinsicGuidance = scoresData.Intrinsic_Motivation >= 4 
+  const intrinsicGuidance = scoresData.Intrinsic_Motivation >= 4
     ? 'HIGH - User prioritizes fun and enjoyment. Activities should be entertaining and pleasurable.'
-    : scoresData.Intrinsic_Motivation <= 2 
-    ? 'LOW - Fun is secondary. Focus on other motivations.'
-    : 'MEDIUM - Fun matters but not primary.';
-    
+    : scoresData.Intrinsic_Motivation <= 2
+      ? 'LOW - Fun is secondary. Focus on other motivations.'
+      : 'MEDIUM - Fun matters but not primary.';
+
   const socialGuidance = scoresData.Social_Motivation >= 4
     ? 'HIGH - User seeks connection and friendship. Prioritize community-building, recurring groups, buddy systems.'
     : scoresData.Social_Motivation <= 2
-    ? 'LOW - Social aspect is secondary. Activity quality matters more than socializing.'
-    : 'MEDIUM - Social connection is nice but not essential.';
-    
+      ? 'LOW - Social aspect is secondary. Activity quality matters more than socializing.'
+      : 'MEDIUM - Social connection is nice but not essential.';
+
   const achievementGuidance = scoresData.Achievement_Motivation >= 4
     ? 'HIGH - User wants to learn and improve. Prioritize: workshops, classes, skill-building, certifications, progression paths.'
     : scoresData.Achievement_Motivation <= 2
-    ? 'LOW - User prefers casual participation without pressure to improve.'
-    : 'MEDIUM - Some learning component is appreciated.';
-  
+      ? 'LOW - User prefers casual participation without pressure to improve.'
+      : 'MEDIUM - Some learning component is appreciated.';
+
   // Determine social needs guidance
   const closeFriendsCount = surveyData.Close_Friends_Count || '';
   let closeFriendsGuidance = '';
@@ -629,7 +629,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     closeFriendsGuidance = 'GOOD: User has solid friend group. Focus on activity quality and shared interests.';
   }
-  
+
   const socialSatisfaction = surveyData.Social_Satisfaction || '';
   let satisfactionGuidance = '';
   if (socialSatisfaction.includes('Dissatisfied') || socialSatisfaction.includes('Very Dissatisfied')) {
@@ -639,7 +639,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     satisfactionGuidance = 'NEUTRAL: User is okay with current social life. Balance community-building with activity focus.';
   }
-  
+
   const lonelinessFreq = surveyData.Loneliness_Frequency || '';
   let lonelinessGuidance = '';
   if (lonelinessFreq.includes('Often') || lonelinessFreq.includes('Always') || lonelinessFreq.includes('Very Often')) {
@@ -649,19 +649,19 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     lonelinessGuidance = 'MODERATE: User sometimes feels lonely. Include some community-building activities.';
   }
-  
+
   // Build looking for guidance
   const lookingFor = Array.isArray(surveyData.Looking_For) ? surveyData.Looking_For : (surveyData.Looking_For ? [surveyData.Looking_For] : []);
   const lookingForGuidance = lookingFor.map(goal => {
-    if (goal.includes('friends') || goal.includes('community')) return `  - "${goal}" → Prioritize recurring groups, community-building, welcoming environments`;
-    if (goal.includes('romantic') || goal.includes('partner')) return `  - "${goal}" → Include co-ed social events, singles mixers, activities with relationship-building potential`;
-    if (goal.includes('networking') || goal.includes('professional')) return `  - "${goal}" → Include career-related meetups, industry events, professional development`;
-    if (goal.includes('explore') || goal.includes('interests')) return `  - "${goal}" → Prioritize variety, novel activities, diverse options`;
-    if (goal.includes('fun') || goal.includes('enjoy')) return `  - "${goal}" → Emphasize entertaining, enjoyable activities`;
-    if (goal.includes('volunteer') || goal.includes('involvement')) return `  - "${goal}" → Include volunteer opportunities, civic engagement, community service`;
+    if (goal.includes('friends') || goal.includes('community')) {return `  - "${goal}" → Prioritize recurring groups, community-building, welcoming environments`;}
+    if (goal.includes('romantic') || goal.includes('partner')) {return `  - "${goal}" → Include co-ed social events, singles mixers, activities with relationship-building potential`;}
+    if (goal.includes('networking') || goal.includes('professional')) {return `  - "${goal}" → Include career-related meetups, industry events, professional development`;}
+    if (goal.includes('explore') || goal.includes('interests')) {return `  - "${goal}" → Prioritize variety, novel activities, diverse options`;}
+    if (goal.includes('fun') || goal.includes('enjoy')) {return `  - "${goal}" → Emphasize entertaining, enjoyable activities`;}
+    if (goal.includes('volunteer') || goal.includes('involvement')) {return `  - "${goal}" → Include volunteer opportunities, civic engagement, community service`;}
     return `  - "${goal}" → Consider in recommendation selection`;
   }).join('\n') || '  - Consider user goals when selecting recommendations';
-  
+
   // Build preferences guidance
   const freeTime = surveyData.Free_Time_Per_Week || '';
   let freeTimeGuidance = '';
@@ -672,7 +672,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     freeTimeGuidance = 'MODERATE TIME: Recommend activities that fit typical schedules (2-4 hours).';
   }
-  
+
   const travelDistance = surveyData.Travel_Distance_Willing || '';
   let travelGuidance = '';
   if (travelDistance.includes('Less than 5') || travelDistance.includes('5-10')) {
@@ -682,7 +682,7 @@ function buildInterpretationSection(userData, surveyData, scoresData) {
   } else {
     travelGuidance = 'MODERATE DISTANCE: Focus on events within reasonable distance, prioritize closer options.';
   }
-  
+
   return `## HOW TO INTERPRET THIS DATA
 
 ### Understanding Personality Scores:
@@ -765,7 +765,7 @@ When multiple signals point in different directions, use these rules:
 
 function buildAffinityGroupsSection(surveyData) {
   const affinityGroups = [];
-  
+
   if (surveyData.Affinity_Faith_Based && surveyData.Affinity_Faith_Based.length > 0) {
     affinityGroups.push(`Faith-based: ${Array.isArray(surveyData.Affinity_Faith_Based) ? surveyData.Affinity_Faith_Based.join(', ') : surveyData.Affinity_Faith_Based}`);
   }
@@ -784,11 +784,11 @@ function buildAffinityGroupsSection(surveyData) {
   if (surveyData.Affinity_International && surveyData.Affinity_International.length > 0) {
     affinityGroups.push(`International/Immigrant: ${Array.isArray(surveyData.Affinity_International) ? surveyData.Affinity_International.join(', ') : surveyData.Affinity_International}`);
   }
-  
+
   if (affinityGroups.length === 0) {
     return '**Community Connections (Affinity Groups):**\nNo affinity groups selected';
   }
-  
+
   return `**Community Connections (Affinity Groups):**\n${affinityGroups.join('\n')}`;
 }
 
@@ -797,10 +797,10 @@ async function getLocation(zipcode) {
     if (!zipcode) {
       return 'your area';
     }
-    
+
     // Use geocoding to get city and state from zipcode
     const locationData = await geocodeZipcode(zipcode);
-    
+
     if (locationData && locationData.city && locationData.state) {
       return `${locationData.city}, ${locationData.state}`;
     } else if (locationData && locationData.city) {

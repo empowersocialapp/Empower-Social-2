@@ -7,13 +7,13 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
 async function checkUserRecommendations(userId) {
   try {
     console.log(`\n🔍 Checking recommendations for user: ${userId}\n`);
-    
+
     // Check user
     const user = await base('Users').find(userId);
     console.log('✅ User found:', user.fields.Name);
     console.log('   Recommendations_Shown:', user.fields.Recommendations_Shown || '(empty)');
     console.log('   Feedback_Summary:', user.fields.Feedback_Summary ? '(exists)' : '(empty)');
-    
+
     // Check GPT_Prompts
     const prompts = await base('GPT_Prompts')
       .select({
@@ -21,22 +21,22 @@ async function checkUserRecommendations(userId) {
         maxRecords: 10
       })
       .all();
-    
+
     console.log(`\n📋 Found ${prompts.length} GPT_Prompts records`);
-    
+
     if (prompts.length > 0) {
       prompts.sort((a, b) => {
         const timeA = new Date(a._rawJson?.createdTime || a.createdTime || 0).getTime();
         const timeB = new Date(b._rawJson?.createdTime || b.createdTime || 0).getTime();
         return timeB - timeA;
       });
-      
+
       const latest = prompts[0];
       console.log('\n📌 Latest prompt record:');
       console.log('   ID:', latest.id);
       console.log('   Created:', latest._rawJson?.createdTime || latest.createdTime);
       console.log('   Has Recommendations_Pool:', !!latest.fields.Recommendations_Pool);
-      
+
       if (latest.fields.Recommendations_Pool) {
         try {
           const pool = JSON.parse(latest.fields.Recommendations_Pool);
@@ -56,7 +56,7 @@ async function checkUserRecommendations(userId) {
     } else {
       console.log('   ⚠️  No GPT_Prompts records found');
     }
-    
+
     // Check survey response
     const surveyResponses = await base('Survey_Responses')
       .select({
@@ -64,9 +64,9 @@ async function checkUserRecommendations(userId) {
         maxRecords: 1
       })
       .all();
-    
+
     console.log(`\n📝 Survey responses: ${surveyResponses.length}`);
-    
+
     // Check calculated scores
     const scores = await base('Calculated_Scores')
       .select({
@@ -74,9 +74,9 @@ async function checkUserRecommendations(userId) {
         maxRecords: 1
       })
       .all();
-    
+
     console.log(`📊 Calculated scores: ${scores.length}`);
-    
+
   } catch (error) {
     console.error('❌ Error:', error.message);
     console.error(error.stack);

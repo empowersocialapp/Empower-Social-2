@@ -50,15 +50,15 @@ const REQUIRED_TABLES = {
 async function verifyTable(tableName, requiredFields) {
   try {
     console.log(`\n📋 Checking table: ${tableName}`);
-    
+
     // Try to fetch a record to verify table exists
     const records = await base(tableName).select({ maxRecords: 1 }).all();
-    console.log(`   ✅ Table exists`);
-    
+    console.log('   ✅ Table exists');
+
     // Check required fields by trying to query them
     const missingFields = [];
     const existingFields = [];
-    
+
     for (const field of requiredFields) {
       try {
         // Try to select just this field
@@ -76,11 +76,11 @@ async function verifyTable(tableName, requiredFields) {
         }
       }
     }
-    
+
     return { exists: true, missingFields, existingFields };
   } catch (error) {
     if (error.message && error.message.includes('Could not find table')) {
-      console.log(`   ❌ Table does NOT exist`);
+      console.log('   ❌ Table does NOT exist');
       return { exists: false, missingFields: requiredFields, existingFields: [] };
     }
     console.log(`   ⚠️  Error checking table: ${error.message.substring(0, 100)}`);
@@ -91,21 +91,21 @@ async function verifyTable(tableName, requiredFields) {
 async function main() {
   console.log('🔍 Verifying Airtable Setup for Conceptual Recommendations System\n');
   console.log('='.repeat(60));
-  
+
   let allPassed = true;
   const results = {};
-  
+
   for (const [tableName, fields] of Object.entries(REQUIRED_TABLES)) {
     const result = await verifyTable(tableName, fields);
     results[tableName] = result;
-    
+
     if (!result.exists || result.missingFields.length > 0) {
       allPassed = false;
     }
   }
-  
+
   console.log('\n' + '='.repeat(60));
-  
+
   if (allPassed) {
     console.log('\n✅ All tables and fields are set up correctly!');
     console.log('\n💡 Your Airtable base is ready for the conceptual recommendation system.');
@@ -117,7 +117,7 @@ async function main() {
     console.log('3. Run this script again: cd backend && node scripts/verify-airtable-setup.js');
     process.exit(1);
   }
-  
+
   console.log('');
 }
 

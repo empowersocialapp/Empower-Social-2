@@ -24,7 +24,7 @@ let requiredMissing = 0;
 for (const [key, description] of Object.entries(keys.required)) {
   const value = process.env[key];
   if (value && value.length > 0) {
-    const masked = key === 'AIRTABLE_BASE_ID' 
+    const masked = key === 'AIRTABLE_BASE_ID'
       ? value.substring(0, 8) + '...' + value.substring(value.length - 4)
       : value.substring(0, 8) + '...' + value.substring(value.length - 4);
     console.log(`  ✅ ${key.padEnd(25)} ${description}`);

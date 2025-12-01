@@ -7,7 +7,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
 async function findPrompt(promptId) {
   try {
     console.log(`Looking for GPT_Prompts record: ${promptId}`);
-    
+
     // Try to find it directly
     try {
       const record = await base('GPT_Prompts').find(promptId);
@@ -21,15 +21,15 @@ async function findPrompt(promptId) {
     } catch (findError) {
       console.log('❌ Could not find by ID:', findError.message);
     }
-    
+
     // Try to find all recent records
     console.log('\nTrying to find all recent GPT_Prompts records...');
     const allRecords = await base('GPT_Prompts')
       .select({ maxRecords: 10 })
       .all();
-    
+
     console.log(`Found ${allRecords.length} total GPT_Prompts records`);
-    
+
     if (allRecords.length > 0) {
       // Sort by created time
       allRecords.sort((a, b) => {
@@ -37,7 +37,7 @@ async function findPrompt(promptId) {
         const timeB = new Date(b._rawJson?.createdTime || b.createdTime || 0).getTime();
         return timeB - timeA;
       });
-      
+
       console.log('\nMost recent records:');
       allRecords.slice(0, 5).forEach((rec, idx) => {
         console.log(`\n${idx + 1}. ID: ${rec.id}`);
@@ -45,13 +45,13 @@ async function findPrompt(promptId) {
         console.log('   Created:', rec._rawJson?.createdTime || rec.createdTime);
         console.log('   Has Recommendations_Generated:', !!rec.fields.Recommendations_Generated);
         console.log('   Has Recommendations_Pool:', !!rec.fields.Recommendations_Pool);
-        
+
         if (rec.id === promptId) {
           console.log('   ✅ THIS IS THE RECORD WE\'RE LOOKING FOR!');
         }
       });
     }
-    
+
   } catch (error) {
     console.error('❌ Error:', error.message);
     console.error(error.stack);
@@ -60,5 +60,4 @@ async function findPrompt(promptId) {
 
 const promptId = process.argv[2] || 'rec9ydL9tGQhYqhRt';
 findPrompt(promptId);
-
 

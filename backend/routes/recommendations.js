@@ -17,7 +17,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
 router.get('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -28,16 +28,16 @@ router.get('/recommendations/:userId', async (req, res) => {
     // Fetch GPT_Prompts records for this user
     // Try multiple query formats to handle different Airtable field types
     console.log(`Querying GPT_Prompts for userId: ${userId}`);
-    
+
     let prompts = await base('GPT_Prompts')
       .select({
         filterByFormula: `{User} = '${userId}'`,
         maxRecords: 10
       })
       .firstPage();
-    
+
     console.log(`Query 1 ({User} = '${userId}'): Found ${prompts.length} prompts`);
-    
+
     // If that doesn't work, try the array format
     if (prompts.length === 0) {
       prompts = await base('GPT_Prompts')
@@ -48,7 +48,7 @@ router.get('/recommendations/:userId', async (req, res) => {
         .firstPage();
       console.log(`Query 2 (FIND in ARRAYJOIN): Found ${prompts.length} prompts`);
     }
-    
+
     // Try a third format - fetch all recent and filter in JavaScript
     if (prompts.length === 0) {
       try {
@@ -57,7 +57,7 @@ router.get('/recommendations/:userId', async (req, res) => {
             maxRecords: 100
           })
           .firstPage();
-        
+
         // Filter in JavaScript by checking if User array contains our userId
         prompts = allRecent.filter(record => {
           const userLinks = record.fields.User || [];
@@ -67,14 +67,14 @@ router.get('/recommendations/:userId', async (req, res) => {
           }
           return isMatch;
         });
-        
+
         // Sort by createdTime in JavaScript (newest first)
         prompts.sort((a, b) => {
           const timeA = new Date(a._rawJson?.createdTime || a.createdTime || 0).getTime();
           const timeB = new Date(b._rawJson?.createdTime || b.createdTime || 0).getTime();
           return timeB - timeA;
         });
-        
+
         console.log(`Query 3 (fetch all and filter): Found ${prompts.length} prompts`);
       } catch (fetchAllError) {
         console.log(`Query 3 failed: ${fetchAllError.message}`);
@@ -95,7 +95,7 @@ router.get('/recommendations/:userId', async (req, res) => {
       const timeB = new Date(b.createdTime || 0).getTime();
       return timeB - timeA; // Descending order (newest first)
     });
-    
+
     const promptRecord = sortedPrompts[0];
     const recommendations = promptRecord.fields.Recommendations_Generated || '';
 
@@ -130,7 +130,7 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
   try {
     const { userId } = req.params;
     const { surveyResponseId, calculatedScoresId } = req.body; // Allow IDs to be passed in body
-    
+
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -152,135 +152,135 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
     // If IDs are provided, use them directly; otherwise, find them
     let surveyResponseIdToUse = surveyResponseId;
     let calculatedScoresIdToUse = calculatedScoresId;
-    
+
     // Get user's latest survey response and calculated scores (only if not provided)
     if (!surveyResponseIdToUse || !calculatedScoresIdToUse) {
       // Try multiple query formats to handle different Airtable field types
       console.log(`Querying for survey responses for userId: ${userId}`);
-      
+
       let surveyResponses = await base('Survey_Responses')
-      .select({
-        filterByFormula: `{User} = '${userId}'`,
-        maxRecords: 10
-      })
-      .firstPage();
-    
-    console.log(`Query 1 ({User} = '${userId}'): Found ${surveyResponses.length} responses`);
-    
-    // If that doesn't work, try the array format
-    if (surveyResponses.length === 0) {
-      surveyResponses = await base('Survey_Responses')
         .select({
-          filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
+          filterByFormula: `{User} = '${userId}'`,
           maxRecords: 10
         })
         .firstPage();
-      console.log(`Query 2 (FIND in ARRAYJOIN): Found ${surveyResponses.length} responses`);
-    }
-    
-    // Try a third format - using the RECORD_ID() function
-    if (surveyResponses.length === 0) {
-      try {
+
+      console.log(`Query 1 ({User} = '${userId}'): Found ${surveyResponses.length} responses`);
+
+      // If that doesn't work, try the array format
+      if (surveyResponses.length === 0) {
         surveyResponses = await base('Survey_Responses')
           .select({
-            filterByFormula: `SEARCH('${userId}', ARRAYJOIN({User}))`,
+            filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
             maxRecords: 10
           })
           .firstPage();
-        console.log(`Query 3 (SEARCH in ARRAYJOIN): Found ${surveyResponses.length} responses`);
-      } catch (searchError) {
-        console.log(`Query 3 failed: ${searchError.message}`);
+        console.log(`Query 2 (FIND in ARRAYJOIN): Found ${surveyResponses.length} responses`);
       }
-    }
-    
-    // Last resort: try to get all recent survey responses and filter in JavaScript
-    if (surveyResponses.length === 0) {
-      try {
-        const allRecent = await base('Survey_Responses')
-          .select({
-            maxRecords: 100
-          })
-          .firstPage();
-        
-        // Filter in JavaScript by checking if User array contains our userId
-        surveyResponses = allRecent.filter(record => {
-          const userLinks = record.fields.User || [];
-          return Array.isArray(userLinks) && userLinks.includes(userId);
+
+      // Try a third format - using the RECORD_ID() function
+      if (surveyResponses.length === 0) {
+        try {
+          surveyResponses = await base('Survey_Responses')
+            .select({
+              filterByFormula: `SEARCH('${userId}', ARRAYJOIN({User}))`,
+              maxRecords: 10
+            })
+            .firstPage();
+          console.log(`Query 3 (SEARCH in ARRAYJOIN): Found ${surveyResponses.length} responses`);
+        } catch (searchError) {
+          console.log(`Query 3 failed: ${searchError.message}`);
+        }
+      }
+
+      // Last resort: try to get all recent survey responses and filter in JavaScript
+      if (surveyResponses.length === 0) {
+        try {
+          const allRecent = await base('Survey_Responses')
+            .select({
+              maxRecords: 100
+            })
+            .firstPage();
+
+          // Filter in JavaScript by checking if User array contains our userId
+          surveyResponses = allRecent.filter(record => {
+            const userLinks = record.fields.User || [];
+            return Array.isArray(userLinks) && userLinks.includes(userId);
+          });
+          console.log(`Query 4 (fetch all and filter): Found ${surveyResponses.length} responses`);
+        } catch (fetchAllError) {
+          console.log(`Query 4 failed: ${fetchAllError.message}`);
+        }
+      }
+
+      if (surveyResponses.length === 0) {
+        console.error(`No survey responses found for userId: ${userId} after trying all query formats`);
+        return res.status(404).json({
+          success: false,
+          error: 'No survey response found for this user. It looks like the survey may not have been completed successfully. Please take the survey again.'
         });
-        console.log(`Query 4 (fetch all and filter): Found ${surveyResponses.length} responses`);
-      } catch (fetchAllError) {
-        console.log(`Query 4 failed: ${fetchAllError.message}`);
       }
-    }
 
-    if (surveyResponses.length === 0) {
-      console.error(`No survey responses found for userId: ${userId} after trying all query formats`);
-      return res.status(404).json({
-        success: false,
-        error: 'No survey response found for this user. It looks like the survey may not have been completed successfully. Please take the survey again.'
+      // Sort by createdTime (newest first) and get the latest
+      const sortedSurveyResponses = surveyResponses.sort((a, b) => {
+        const timeA = new Date(a.createdTime || 0).getTime();
+        const timeB = new Date(b.createdTime || 0).getTime();
+        return timeB - timeA; // Descending order (newest first)
       });
-    }
-
-    // Sort by createdTime (newest first) and get the latest
-    const sortedSurveyResponses = surveyResponses.sort((a, b) => {
-      const timeA = new Date(a.createdTime || 0).getTime();
-      const timeB = new Date(b.createdTime || 0).getTime();
-      return timeB - timeA; // Descending order (newest first)
-    });
 
       surveyResponseIdToUse = sortedSurveyResponses[0].id;
 
       // Try multiple query formats for calculated scores
       let calculatedScores = await base('Calculated_Scores')
-      .select({
-        filterByFormula: `{User} = '${userId}'`,
-        maxRecords: 10
-      })
-      .firstPage();
-    
-    // If that doesn't work, try the array format
-    if (calculatedScores.length === 0) {
-      calculatedScores = await base('Calculated_Scores')
         .select({
-          filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
+          filterByFormula: `{User} = '${userId}'`,
           maxRecords: 10
         })
         .firstPage();
-    }
 
-    // Last resort: fetch all and filter in JavaScript
-    if (calculatedScores.length === 0) {
-      try {
-        const allRecent = await base('Calculated_Scores')
+      // If that doesn't work, try the array format
+      if (calculatedScores.length === 0) {
+        calculatedScores = await base('Calculated_Scores')
           .select({
-            maxRecords: 100
+            filterByFormula: `FIND('${userId}', ARRAYJOIN({User}))`,
+            maxRecords: 10
           })
           .firstPage();
-
-        // Filter in JavaScript by checking if User array contains our userId
-        calculatedScores = allRecent.filter(record => {
-          const userLinks = record.fields.User || [];
-          return Array.isArray(userLinks) && userLinks.includes(userId);
-        });
-        console.log(`Query 3 (fetch all and filter): Found ${calculatedScores.length} calculated scores`);
-      } catch (fetchAllError) {
-        console.log(`Query 3 failed: ${fetchAllError.message}`);
       }
-    }
 
-    if (calculatedScores.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'No calculated scores found for this user'
+      // Last resort: fetch all and filter in JavaScript
+      if (calculatedScores.length === 0) {
+        try {
+          const allRecent = await base('Calculated_Scores')
+            .select({
+              maxRecords: 100
+            })
+            .firstPage();
+
+          // Filter in JavaScript by checking if User array contains our userId
+          calculatedScores = allRecent.filter(record => {
+            const userLinks = record.fields.User || [];
+            return Array.isArray(userLinks) && userLinks.includes(userId);
+          });
+          console.log(`Query 3 (fetch all and filter): Found ${calculatedScores.length} calculated scores`);
+        } catch (fetchAllError) {
+          console.log(`Query 3 failed: ${fetchAllError.message}`);
+        }
+      }
+
+      if (calculatedScores.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'No calculated scores found for this user'
+        });
+      }
+
+      // Sort by createdTime (newest first) and get the latest
+      const sortedCalculatedScores = calculatedScores.sort((a, b) => {
+        const timeA = new Date(a.createdTime || 0).getTime();
+        const timeB = new Date(b.createdTime || 0).getTime();
+        return timeB - timeA; // Descending order (newest first)
       });
-    }
-
-    // Sort by createdTime (newest first) and get the latest
-    const sortedCalculatedScores = calculatedScores.sort((a, b) => {
-      const timeA = new Date(a.createdTime || 0).getTime();
-      const timeB = new Date(b.createdTime || 0).getTime();
-      return timeB - timeA; // Descending order (newest first)
-    });
 
       calculatedScoresIdToUse = sortedCalculatedScores[0].id;
     }
@@ -288,16 +288,16 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
     // Generate conceptual recommendations
     const { generateRecommendationsV2 } = require('../services/recommendations-v2');
     const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
-    
+
     let recommendationsResult;
     let method = 'conceptual_only';
-    
+
     // Try v2 conceptual system first, fallback to legacy if it fails
     // Bypass cache when explicitly regenerating
     try {
       console.log('Attempting conceptual recommendation system (bypassing cache)...');
       recommendationsResult = await generateRecommendationsV2(userId, surveyResponseIdToUse, calculatedScoresIdToUse, null, true);
-      
+
       if (!recommendationsResult.success) {
         console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
         throw new Error(recommendationsResult.error);
@@ -305,17 +305,17 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
     } catch (v2Error) {
       console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
       method = 'legacy';
-      
+
       // Fallback to legacy system
       recommendationsResult = await generateRecommendations(userId, surveyResponseIdToUse, calculatedScoresIdToUse);
-      
+
       if (!recommendationsResult.success) {
         return res.status(500).json({
           success: false,
           error: `Failed to generate recommendations: ${recommendationsResult.error}`
         });
       }
-      
+
       // Legacy system needs manual saving
       const { recommendations, promptText } = recommendationsResult.data;
       const saveResult = await savePromptToAirtable(
@@ -338,15 +338,15 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
         message: 'Recommendations regenerated successfully (legacy system)'
       });
     }
-    
+
     // Conceptual system succeeded
     const { recommendations, stats } = recommendationsResult.data;
 
     // Convert array to string if needed (v2 system returns array)
     const recommendationsText = Array.isArray(recommendations)
       ? recommendations.map(r =>
-          `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
-        ).join('\n\n---\n\n')
+        `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
+      ).join('\n\n---\n\n')
       : recommendations;
 
     return res.status(200).json({
@@ -374,7 +374,7 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
 router.post('/user/by-email', async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -398,7 +398,7 @@ router.post('/user/by-email', async (req, res) => {
     }
 
     const user = users[0];
-    
+
     return res.status(200).json({
       success: true,
       data: {
@@ -424,11 +424,11 @@ router.post('/user/by-email', async (req, res) => {
 router.post('/test/create-test-user', async (req, res) => {
   try {
     const { email = 'test@example.com', name = 'Test User', zipcode = '22903' } = req.body;
-    
+
     const { createUser, createSurveyResponse, createCalculatedScores } = require('../services/airtable');
     const { generateRecommendationsV2 } = require('../services/recommendations-v2');
     const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
-    
+
     // Create test user
     const userResult = await createUser({
       name: name,
@@ -437,16 +437,16 @@ router.post('/test/create-test-user', async (req, res) => {
       gender: 'Other',
       zipcode: zipcode
     });
-    
+
     if (!userResult.success) {
       return res.status(500).json({
         success: false,
         error: `Failed to create user: ${userResult.error}`
       });
     }
-    
+
     const userId = userResult.data.userId;
-    
+
     // Create test survey response with dummy data
     const testSurveyData = {
       personality: { q1: 5, q6: 3, q3: 6, q8: 2, q5: 4, q10: 3 },
@@ -480,7 +480,7 @@ router.post('/test/create-test-user', async (req, res) => {
         international: []
       }
     };
-    
+
     const surveyResult = await createSurveyResponse(testSurveyData, userId);
     if (!surveyResult.success) {
       return res.status(500).json({
@@ -488,9 +488,9 @@ router.post('/test/create-test-user', async (req, res) => {
         error: `Failed to create survey response: ${surveyResult.error}`
       });
     }
-    
+
     const surveyResponseId = surveyResult.data.surveyResponseId;
-    
+
     // Create calculated scores
     const scoresResult = await createCalculatedScores(userId, surveyResponseId);
     if (!scoresResult.success) {
@@ -499,17 +499,17 @@ router.post('/test/create-test-user', async (req, res) => {
         error: `Failed to create calculated scores: ${scoresResult.error}`
       });
     }
-    
+
     const calculatedScoresId = scoresResult.data.calculatedScoresId;
-    
+
     // Generate conceptual recommendations
     let recommendationsResult;
     let method = 'conceptual_only';
-    
+
     try {
       console.log('Attempting conceptual recommendation system for test user...');
       recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId);
-      
+
       if (!recommendationsResult.success) {
         console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
         throw new Error(recommendationsResult.error);
@@ -517,7 +517,7 @@ router.post('/test/create-test-user', async (req, res) => {
     } catch (v2Error) {
       console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
       method = 'legacy';
-      
+
       // Fallback to legacy system
       recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
       if (!recommendationsResult.success) {
@@ -526,7 +526,7 @@ router.post('/test/create-test-user', async (req, res) => {
           error: `Failed to generate recommendations: ${recommendationsResult.error}`
         });
       }
-      
+
       // Legacy system needs manual saving
       const { recommendations, promptText } = recommendationsResult.data;
       const saveResult = await savePromptToAirtable(
@@ -536,7 +536,7 @@ router.post('/test/create-test-user', async (req, res) => {
         promptText,
         recommendations
       );
-      
+
       return res.status(200).json({
         success: true,
         data: {
@@ -553,10 +553,10 @@ router.post('/test/create-test-user', async (req, res) => {
         }
       });
     }
-    
+
     // Conceptual system succeeded
     const { recommendations, stats, promptId, warning } = recommendationsResult.data;
-    
+
     return res.status(200).json({
       success: true,
       data: {
@@ -574,7 +574,7 @@ router.post('/test/create-test-user', async (req, res) => {
         message: 'Test user created successfully with recommendations (conceptual system)'
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating test user:', error);
     return res.status(500).json({

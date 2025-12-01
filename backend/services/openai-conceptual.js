@@ -17,17 +17,17 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 async function generateConceptualRecommendations(userProfile, recommendationsCount = 5) {
   try {
     const { user, survey, scores, location } = userProfile;
-    
+
     // Build prompt for conceptual generation
     const prompt = buildConceptualPrompt(user, survey, scores, location, recommendationsCount);
-    
+
     // Use gpt-4o for concept generation (faster than gpt-4-turbo, still high quality)
     // Add timeout to prevent hanging (60 seconds max)
     const timeoutMs = 60000; // 60 seconds
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('OpenAI API timeout after 60 seconds')), timeoutMs)
     );
-    
+
     const apiCallPromise = openai.chat.completions.create({
       model: process.env.OPENAI_CONCEPT_MODEL || 'gpt-4o',
       messages: [
@@ -44,15 +44,15 @@ async function generateConceptualRecommendations(userProfile, recommendationsCou
       response_format: { type: 'json_object' },
       max_tokens: 2500 // Slightly reduced for speed
     });
-    
+
     const completion = await Promise.race([apiCallPromise, timeoutPromise]);
-    
+
     const responseText = completion.choices[0].message.content;
     const concepts = JSON.parse(responseText);
-    
+
     // Validate and normalize concepts
     const normalizedConcepts = normalizeConcepts(concepts, recommendationsCount);
-    
+
     return {
       success: true,
       data: {
@@ -113,7 +113,7 @@ function buildInterpretationSection(user, survey, scores) {
   const extraversionInterp = getExtraversionInterpretation(scores.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scores.Conscientiousness_Category);
   const opennessInterp = getOpennessInterpretation(scores.Openness_Category);
-  
+
   // Determine extraversion guidance
   let extraversionGuidance = '';
   if (scores.Extraversion_Category === 'High') {
@@ -123,7 +123,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     extraversionGuidance = 'MEDIUM: User enjoys balance. Mix small intimate groups with moderate-sized events (10-20 people).';
   }
-  
+
   // Determine conscientiousness guidance
   let conscientiousnessGuidance = '';
   if (scores.Conscientiousness_Category === 'High') {
@@ -133,7 +133,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     conscientiousnessGuidance = 'MEDIUM: User enjoys both structure and flexibility. Mix scheduled programs with flexible options.';
   }
-  
+
   // Determine openness guidance
   let opennessGuidance = '';
   if (scores.Openness_Category === 'High') {
@@ -143,26 +143,26 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     opennessGuidance = 'MEDIUM: User enjoys both familiar and new experiences. Balance traditional activities with occasional novelty.';
   }
-  
+
   // Determine motivation guidance
-  const intrinsicGuidance = scores.Intrinsic_Motivation >= 4 
+  const intrinsicGuidance = scores.Intrinsic_Motivation >= 4
     ? 'HIGH - User prioritizes fun and enjoyment. Activities should be entertaining and pleasurable.'
-    : scores.Intrinsic_Motivation <= 2 
-    ? 'LOW - Fun is secondary. Focus on other motivations.'
-    : 'MEDIUM - Fun matters but not primary.';
-    
+    : scores.Intrinsic_Motivation <= 2
+      ? 'LOW - Fun is secondary. Focus on other motivations.'
+      : 'MEDIUM - Fun matters but not primary.';
+
   const socialGuidance = scores.Social_Motivation >= 4
     ? 'HIGH - User seeks connection and friendship. Prioritize community-building, recurring groups, buddy systems.'
     : scores.Social_Motivation <= 2
-    ? 'LOW - Social aspect is secondary. Activity quality matters more than socializing.'
-    : 'MEDIUM - Social connection is nice but not essential.';
-    
+      ? 'LOW - Social aspect is secondary. Activity quality matters more than socializing.'
+      : 'MEDIUM - Social connection is nice but not essential.';
+
   const achievementGuidance = scores.Achievement_Motivation >= 4
     ? 'HIGH - User wants to learn and improve. Prioritize: workshops, classes, skill-building, certifications, progression paths.'
     : scores.Achievement_Motivation <= 2
-    ? 'LOW - User prefers casual participation without pressure to improve.'
-    : 'MEDIUM - Some learning component is appreciated.';
-  
+      ? 'LOW - User prefers casual participation without pressure to improve.'
+      : 'MEDIUM - Some learning component is appreciated.';
+
   // Determine social needs guidance
   const closeFriendsCount = survey.Close_Friends_Count || '';
   let closeFriendsGuidance = '';
@@ -173,7 +173,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     closeFriendsGuidance = 'GOOD: User has solid friend group. Focus on activity quality and shared interests.';
   }
-  
+
   const socialSatisfaction = survey.Social_Satisfaction || '';
   let satisfactionGuidance = '';
   if (socialSatisfaction.includes('Dissatisfied') || socialSatisfaction.includes('Very Dissatisfied')) {
@@ -183,7 +183,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     satisfactionGuidance = 'NEUTRAL: User is okay with current social life. Balance community-building with activity focus.';
   }
-  
+
   const lonelinessFreq = survey.Loneliness_Frequency || '';
   let lonelinessGuidance = '';
   if (lonelinessFreq.includes('Often') || lonelinessFreq.includes('Always') || lonelinessFreq.includes('Very Often')) {
@@ -193,19 +193,19 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     lonelinessGuidance = 'MODERATE: User sometimes feels lonely. Include some community-building activities.';
   }
-  
+
   // Build looking for guidance
   const lookingFor = Array.isArray(survey.Looking_For) ? survey.Looking_For : (survey.Looking_For ? [survey.Looking_For] : []);
   const lookingForGuidance = lookingFor.map(goal => {
-    if (goal.includes('friends') || goal.includes('community')) return `  - "${goal}" → Prioritize recurring groups, community-building, welcoming environments`;
-    if (goal.includes('romantic') || goal.includes('partner')) return `  - "${goal}" → Include co-ed social events, singles mixers, activities with relationship-building potential`;
-    if (goal.includes('networking') || goal.includes('professional')) return `  - "${goal}" → Include career-related meetups, industry events, professional development`;
-    if (goal.includes('explore') || goal.includes('interests')) return `  - "${goal}" → Prioritize variety, novel activities, diverse options`;
-    if (goal.includes('fun') || goal.includes('enjoy')) return `  - "${goal}" → Emphasize entertaining, enjoyable activities`;
-    if (goal.includes('volunteer') || goal.includes('involvement')) return `  - "${goal}" → Include volunteer opportunities, civic engagement, community service`;
+    if (goal.includes('friends') || goal.includes('community')) {return `  - "${goal}" → Prioritize recurring groups, community-building, welcoming environments`;}
+    if (goal.includes('romantic') || goal.includes('partner')) {return `  - "${goal}" → Include co-ed social events, singles mixers, activities with relationship-building potential`;}
+    if (goal.includes('networking') || goal.includes('professional')) {return `  - "${goal}" → Include career-related meetups, industry events, professional development`;}
+    if (goal.includes('explore') || goal.includes('interests')) {return `  - "${goal}" → Prioritize variety, novel activities, diverse options`;}
+    if (goal.includes('fun') || goal.includes('enjoy')) {return `  - "${goal}" → Emphasize entertaining, enjoyable activities`;}
+    if (goal.includes('volunteer') || goal.includes('involvement')) {return `  - "${goal}" → Include volunteer opportunities, civic engagement, community service`;}
     return `  - "${goal}" → Consider in recommendation selection`;
   }).join('\n') || '  - Consider user goals when selecting recommendations';
-  
+
   // Build preferences guidance
   const freeTime = survey.Free_Time_Per_Week || '';
   let freeTimeGuidance = '';
@@ -216,7 +216,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     freeTimeGuidance = 'MODERATE TIME: Recommend activities that fit typical schedules (2-4 hours).';
   }
-  
+
   const travelDistance = survey.Travel_Distance_Willing || '';
   let travelGuidance = '';
   if (travelDistance.includes('Less than 5') || travelDistance.includes('5-10')) {
@@ -226,7 +226,7 @@ function buildInterpretationSection(user, survey, scores) {
   } else {
     travelGuidance = 'MODERATE DISTANCE: Focus on events within reasonable distance, prioritize closer options.';
   }
-  
+
   return `## HOW TO INTERPRET THIS DATA
 
 ### Understanding Personality Scores:
@@ -314,19 +314,19 @@ function buildConceptualPrompt(user, survey, scores, location, count) {
   const extraversionInterp = getExtraversionInterpretation(scores.Extraversion_Category);
   const conscientiousnessInterp = getConscientiousnessInterpretation(scores.Conscientiousness_Category);
   const opennessInterp = getOpennessInterpretation(scores.Openness_Category);
-  
+
   // Build affinity groups section
   const affinityGroups = [];
-  if (survey.Affinity_Faith_Based?.length > 0) affinityGroups.push(`Faith: ${survey.Affinity_Faith_Based.join(', ')}`);
-  if (survey.Affinity_LGBTQ?.length > 0) affinityGroups.push(`LGBTQ: ${survey.Affinity_LGBTQ.join(', ')}`);
-  if (survey.Affinity_Cultural_Ethnic?.length > 0) affinityGroups.push(`Cultural: ${survey.Affinity_Cultural_Ethnic.join(', ')}`);
-  if (survey.Affinity_Womens?.length > 0) affinityGroups.push(`Women's: ${survey.Affinity_Womens.join(', ')}`);
-  if (survey.Affinity_Young_Prof?.length > 0) affinityGroups.push(`Young Professional: ${survey.Affinity_Young_Prof.join(', ')}`);
-  if (survey.Affinity_International?.length > 0) affinityGroups.push(`International: ${survey.Affinity_International.join(', ')}`);
-  
+  if (survey.Affinity_Faith_Based?.length > 0) {affinityGroups.push(`Faith: ${survey.Affinity_Faith_Based.join(', ')}`);}
+  if (survey.Affinity_LGBTQ?.length > 0) {affinityGroups.push(`LGBTQ: ${survey.Affinity_LGBTQ.join(', ')}`);}
+  if (survey.Affinity_Cultural_Ethnic?.length > 0) {affinityGroups.push(`Cultural: ${survey.Affinity_Cultural_Ethnic.join(', ')}`);}
+  if (survey.Affinity_Womens?.length > 0) {affinityGroups.push(`Women's: ${survey.Affinity_Womens.join(', ')}`);}
+  if (survey.Affinity_Young_Prof?.length > 0) {affinityGroups.push(`Young Professional: ${survey.Affinity_Young_Prof.join(', ')}`);}
+  if (survey.Affinity_International?.length > 0) {affinityGroups.push(`International: ${survey.Affinity_International.join(', ')}`);}
+
   // Build interpretation section
   const interpretationSection = buildInterpretationSection(user, survey, scores);
-  
+
   return `You are an expert social psychologist and activity recommender. Generate ${count} idealized event/activity concepts that would be PERFECT for this person.
 
 USER PROFILE:
@@ -475,7 +475,7 @@ Generate ${count} concepts now.`;
  */
 function normalizeConcepts(concepts, expectedCount) {
   let conceptArray = [];
-  
+
   // Handle different response formats
   if (Array.isArray(concepts)) {
     conceptArray = concepts;
@@ -487,7 +487,7 @@ function normalizeConcepts(concepts, expectedCount) {
     console.warn('Unexpected concepts format:', Object.keys(concepts));
     return [];
   }
-  
+
   // Validate and normalize each concept
   const normalized = conceptArray
     .slice(0, expectedCount)
@@ -502,17 +502,17 @@ function normalizeConcepts(concepts, expectedCount) {
           atmosphere: concept.atmosphere || 'welcoming',
           timeCommitment: concept.timeCommitment || '2-3 hours'
         },
-        searchQueries: Array.isArray(concept.searchQueries) 
+        searchQueries: Array.isArray(concept.searchQueries)
           ? concept.searchQueries.slice(0, 5)
           : (concept.searchQueries ? [concept.searchQueries] : []),
-        keywords: Array.isArray(concept.keywords) 
+        keywords: Array.isArray(concept.keywords)
           ? concept.keywords.slice(0, 10)
           : (concept.keywords ? [concept.keywords] : []),
         isRecurring: concept.isRecurring !== undefined ? concept.isRecurring : (index % 2 === 0),
         priority: concept.priority || Math.min(5, index + 1)
       };
     });
-  
+
   return normalized;
 }
 

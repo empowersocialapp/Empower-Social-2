@@ -2,7 +2,7 @@ const axios = require('axios');
 
 /**
  * OTHER EVENT SOURCES TO CONSIDER:
- * 
+ *
  * APIs (Structured Data):
  * - Eventbrite API (already implemented)
  * - Meetup API (already implemented)
@@ -13,7 +13,7 @@ const axios = require('axios');
  * - Songkick API (concerts)
  * - Yelp Events API
  * - Google Places API (events)
- * 
+ *
  * Web Scraping (via Firecrawl):
  * - Local event calendars (city websites, parks & rec)
  * - Community center websites
@@ -24,7 +24,7 @@ const axios = require('axios');
  * - Facebook Events (public pages)
  * - Nextdoor events
  * - Local Facebook groups
- * 
+ *
  * Aggregators:
  * - AllEvents.in
  * - Eventful API
@@ -43,7 +43,7 @@ async function fetchEventbriteEvents(zipcode, categories = [], radius = 25) {
     // Eventbrite API requires authentication
     // You'll need to get an API key from: https://www.eventbrite.com/platform/api/
     const apiKey = process.env.EVENTBRITE_API_KEY;
-    
+
     if (!apiKey) {
       console.warn('EVENTBRITE_API_KEY not set, skipping Eventbrite events');
       return [];
@@ -52,7 +52,7 @@ async function fetchEventbriteEvents(zipcode, categories = [], radius = 25) {
     // Convert zipcode to lat/lng (you'll need a geocoding service)
     // For now, using a placeholder - you'd use Google Maps Geocoding API or similar
     const location = await geocodeZipcode(zipcode);
-    
+
     if (!location) {
       return [];
     }
@@ -152,14 +152,14 @@ async function fetchEventbriteEvents(zipcode, categories = [], radius = 25) {
 async function fetchGooglePlacesEvents(zipcode, city, state, categories = []) {
   try {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    
+
     if (!apiKey) {
       if (process.env.DEBUG_EVENTS === 'true') {
         console.log('GOOGLE_MAPS_API_KEY not set, skipping Google Places events');
       }
       return [];
     }
-    
+
     console.log('Fetching Google Places API 2.0 events...');
 
     const location = await geocodeZipcode(zipcode);
@@ -214,7 +214,7 @@ async function fetchGooglePlacesEvents(zipcode, city, state, categories = []) {
     // Build activity-focused queries for each category
     const searchQueries = [];
     const includedTypes = new Set();
-    
+
     categories.forEach(category => {
       const mapping = categoryQueryMap[category];
       if (mapping) {
@@ -238,7 +238,7 @@ async function fetchGooglePlacesEvents(zipcode, city, state, categories = []) {
 
     // Use Google Places API 2.0 Text Search
     const url = 'https://places.googleapis.com/v1/places:searchText';
-    
+
     // Limit to 3 queries to manage API costs
     for (const textQuery of searchQueries.slice(0, 3)) {
       try {
@@ -277,16 +277,16 @@ async function fetchGooglePlacesEvents(zipcode, city, state, categories = []) {
             const name = place.displayName?.text || '';
             const types = place.types || [];
             const lowerName = name.toLowerCase();
-            
+
             const activityIndicators = [
               'class', 'workshop', 'studio', 'school', 'center', 'club', 'academy',
               'training', 'learning', 'education'
             ];
-            
-            const hasActivityIndicator = 
+
+            const hasActivityIndicator =
               activityIndicators.some(indicator => lowerName.includes(indicator)) ||
               types.some(type => ['art_school', 'yoga_studio', 'gym', 'community_center', 'school'].includes(type));
-            
+
             if (hasActivityIndicator) {
               events.push({
                 name: name,
@@ -342,7 +342,7 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
   try {
     const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
     const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
-    
+
     if (!apiKey || !searchEngineId) {
       // Silently skip if no API keys
       return [];
@@ -350,10 +350,10 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
 
     const location = await geocodeZipcode(zipcode);
     const locationStr = location ? `${city}, ${state}` : `${zipcode}`;
-    
+
     // Build simple search queries (query-optimizer removed - using basic queries)
     const searchQueries = [];
-    
+
     // Create simple activity queries for each category
     if (categories.length > 0) {
       categories.slice(0, 3).forEach(category => {
@@ -362,7 +362,7 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
         searchQueries.push(`${category} meetup ${locationStr}`);
       });
     }
-    
+
     // Add specific interests if provided
     if (specificInterests && specificInterests.trim().length > 0) {
       const interests = specificInterests.split(',').slice(0, 2);
@@ -377,16 +377,16 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
         });
       });
     }
-    
+
     // If no specific queries, use PRD-based general activity queries
     if (searchQueries.length === 0) {
       searchQueries.push(`join upcoming workshops ${locationStr} registration`);
       searchQueries.push(`take classes ${locationStr} sign up`);
       searchQueries.push(`attend events ${locationStr} this week`);
     }
-    
+
     const events = [];
-    
+
     // Search multiple queries to find specific events
     for (const query of searchQueries.slice(0, 3)) {
       try {
@@ -398,25 +398,25 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
           num: 5, // Limit results per query
           dateRestrict: 'd14' // Last 14 days
         };
-        
+
         const response = await axios.get(url, { params, timeout: 5000 });
-        
+
         if (response.data.items) {
           response.data.items.forEach(item => {
             // Filter out generic places - look for event indicators
             const title = item.title.toLowerCase();
             const snippet = item.snippet.toLowerCase();
             const link = item.link.toLowerCase();
-            
+
             // Skip if it's clearly a generic place/organization
-            const isGenericPlace = 
+            const isGenericPlace =
               link.includes('wikipedia.org') ||
               link.includes('yelp.com/biz') ||
               (title.includes('about') && !title.includes('event')) ||
               (snippet.includes('about us') && !snippet.includes('event'));
-            
+
             // Look for event indicators
-            const hasEventIndicators = 
+            const hasEventIndicators =
               title.includes('event') ||
               title.includes('workshop') ||
               title.includes('class') ||
@@ -435,7 +435,7 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
               link.includes('event') ||
               link.includes('workshop') ||
               link.includes('class');
-            
+
             // Only include if it looks like an event
             if (!isGenericPlace && hasEventIndicators) {
               // Try to extract date from snippet
@@ -449,7 +449,7 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
                   // Date parsing failed, leave as null
                 }
               }
-              
+
               events.push({
                 name: item.title,
                 description: item.snippet,
@@ -467,7 +467,7 @@ async function fetchGoogleSearchEvents(zipcode, city, state, categories = [], sp
         continue;
       }
     }
-    
+
     return events;
   } catch (error) {
     // Only log if API keys are set
@@ -498,7 +498,7 @@ async function geocodeZipcode(zipcode) {
       if (response.data.results && response.data.results.length > 0) {
         const result = response.data.results[0];
         const location = result.geometry.location;
-        
+
         // Extract city and state from address components
         let city = '';
         let state = '';
@@ -510,7 +510,7 @@ async function geocodeZipcode(zipcode) {
             state = component.short_name;
           }
         }
-        
+
         return {
           lat: location.lat,
           lng: location.lng,
@@ -549,7 +549,7 @@ async function geocodeZipcode(zipcode) {
         console.warn('OpenStreetMap geocoding failed:', osmError.message);
       }
     }
-    
+
     // Fallback: return null if no geocoding service works
     console.warn('No geocoding service configured or failed, using placeholder location');
     return null;
@@ -571,13 +571,13 @@ function filterAndRankEvents(events, userProfile) {
   // - Time availability
   // - Interest categories
   // - Affinity groups (if applicable)
-  
+
   // Rank events based on:
   // - Personality match
   // - Motivation alignment
   // - Interest relevance
   // - Social needs
-  
+
   // This is a simplified version - you'd want more sophisticated ranking
   return events
     .filter(event => {
@@ -598,51 +598,51 @@ function filterAndRankEvents(events, userProfile) {
 async function fetchFirecrawlEvents(zipcode, city, state, categories = []) {
   try {
     const apiKey = process.env.FIRECRAWL_API_KEY;
-    
+
     if (!apiKey) {
       console.warn('FIRECRAWL_API_KEY not set, skipping Firecrawl events');
       return [];
     }
 
     const events = [];
-    
+
     // URLs to scrape for events (customize based on location)
     const citySlug = city.toLowerCase().replace(/\s+/g, '');
     const urlsToScrape = [
       // City/County event calendars
       `https://www.${citySlug}.gov/events`,
       `https://www.${citySlug}parksandrec.org/events`,
-      
+
       // Community centers
       `https://www.${citySlug}communitycenter.org/calendar`,
-      
+
       // Libraries
       `https://www.${citySlug}library.org/events`,
-      
+
       // Universities
       `https://events.${citySlug}university.edu`,
       `https://www.${citySlug}university.edu/events`,
-      
+
       // Museums
       `https://www.${citySlug}museum.org/events`,
       `https://www.${citySlug}artmuseum.org/calendar`,
-      
+
       // Nextdoor (community events - public pages)
       `https://nextdoor.com/events/${citySlug}-${state.toLowerCase()}`,
-      
+
       // Religious organizations (generic patterns)
       `https://www.${citySlug}church.org/events`,
       `https://www.${citySlug}temple.org/calendar`,
-      
+
       // Nonprofits
       `https://www.${citySlug}nonprofit.org/events`,
-      `https://www.${citySlug}volunteer.org/calendar`,
+      `https://www.${citySlug}volunteer.org/calendar`
     ];
 
     // Use Firecrawl to scrape each URL (limit to 4 URLs max for speed)
     // Prioritize: city.gov, parks&rec, libraries, universities
     const urlsToScrapeLimited = urlsToScrape.slice(0, 4);
-    
+
     for (const url of urlsToScrapeLimited) {
       try {
         // Add timeout to each scrape (5 seconds max per URL)
@@ -658,7 +658,7 @@ async function fetchFirecrawlEvents(zipcode, city, state, categories = []) {
           timeout: 5000 // 5 second timeout per URL
         });
 
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Scrape timeout')), 5000)
         );
 
@@ -695,7 +695,7 @@ async function parseEventsFromScrapedContent(scrapedData, sourceUrl, city) {
   try {
     const OpenAI = require('openai');
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
+
     if (!process.env.OPENAI_API_KEY) {
       console.warn('OPENAI_API_KEY not set, cannot parse events from scraped content');
       return [];
@@ -703,7 +703,7 @@ async function parseEventsFromScrapedContent(scrapedData, sourceUrl, city) {
 
     // Get the markdown content from Firecrawl response
     const content = scrapedData.data?.markdown || scrapedData.markdown || '';
-    
+
     if (!content || content.length < 100) {
       // Not enough content to parse
       return [];
@@ -745,19 +745,19 @@ Only extract actual events (not navigation, headers, footers). Return ONLY valid
         }
       ],
       temperature: 0.3, // Lower temperature for more consistent extraction
-      max_tokens: 2000,
+      max_tokens: 2000
       // Note: response_format json_object requires object, not array
       // So we'll parse the text response instead
     });
 
     const responseText = completion.choices[0].message.content;
-    
+
     // Parse JSON response - GPT may return array or object
     let parsedEvents = [];
     try {
       // Try parsing as JSON first
       const jsonResponse = JSON.parse(responseText);
-      
+
       // Handle different response formats
       if (Array.isArray(jsonResponse)) {
         parsedEvents = jsonResponse;
@@ -813,58 +813,58 @@ Only extract actual events (not navigation, headers, footers). Return ONLY valid
 async function fetchFirecrawlEventsStructured(url, query, city, state, category = '') {
   try {
     const firecrawlApiKey = process.env.FIRECRAWL_API_KEY;
-    
+
     if (!firecrawlApiKey) {
       return [];
     }
 
     // Define schema for event extraction
     const eventSchema = {
-      type: "object",
+      type: 'object',
       properties: {
         events: {
-          type: "array",
+          type: 'array',
           items: {
-            type: "object",
+            type: 'object',
             properties: {
-              name: { 
-                type: "string", 
-                description: "Event, club, class, workshop, league, or meetup name" 
+              name: {
+                type: 'string',
+                description: 'Event, club, class, workshop, league, or meetup name'
               },
-              description: { 
-                type: "string", 
-                description: "Brief description of the activity" 
+              description: {
+                type: 'string',
+                description: 'Brief description of the activity'
               },
-              date: { 
-                type: "string", 
-                description: "Event date (e.g., 'Oct 7', 'Tomorrow', 'Every Saturday', 'TBD')" 
+              date: {
+                type: 'string',
+                description: "Event date (e.g., 'Oct 7', 'Tomorrow', 'Every Saturday', 'TBD')"
               },
-              time: { 
-                type: "string", 
-                description: "Event time (e.g., '6:30 PM', '10:00 AM - 12:00 PM', 'TBD')" 
+              time: {
+                type: 'string',
+                description: "Event time (e.g., '6:30 PM', '10:00 AM - 12:00 PM', 'TBD')"
               },
-              location: { 
-                type: "string", 
-                description: "Event location, venue name, or address" 
+              location: {
+                type: 'string',
+                description: 'Event location, venue name, or address'
               },
-              url: { 
-                type: "string", 
-                description: "Registration URL, event page URL, or website" 
+              url: {
+                type: 'string',
+                description: 'Registration URL, event page URL, or website'
               },
-              recurring: { 
-                type: "boolean", 
-                description: "Whether this is a recurring activity (club, class, league)" 
+              recurring: {
+                type: 'boolean',
+                description: 'Whether this is a recurring activity (club, class, league)'
               },
-              cost: { 
-                type: "string", 
-                description: "Cost (e.g., 'Free', '$20', '$50/month', 'See website')" 
+              cost: {
+                type: 'string',
+                description: "Cost (e.g., 'Free', '$20', '$50/month', 'See website')"
               }
             },
-            required: ["name"]
+            required: ['name']
           }
         }
       },
-      required: ["events"]
+      required: ['events']
     };
 
     // Build extraction prompt based on context
@@ -892,7 +892,7 @@ For recurring activities, set recurring: true.`;
       {
         url: url,
         formats: [{
-          type: "json",
+          type: 'json',
           schema: eventSchema,
           prompt: extractionPrompt
         }],
@@ -910,10 +910,10 @@ For recurring activities, set recurring: true.`;
 
     if (response.data && response.data.data && response.data.data.json) {
       const extracted = response.data.data.json;
-      
+
       if (extracted.events && Array.isArray(extracted.events) && extracted.events.length > 0) {
         console.log(`Firecrawl: Extracted ${extracted.events.length} structured events from ${url}`);
-        
+
         // Normalize to our event format
         const normalizedEvents = extracted.events.map(event => {
           // Parse date/time into ISO format if possible
@@ -949,15 +949,15 @@ For recurring activities, set recurring: true.`;
       } else {
         console.log(`Firecrawl: No events extracted from ${url} (empty array or invalid format)`);
         if (process.env.DEBUG_EVENTS === 'true' && extracted) {
-          console.log(`  Response structure:`, JSON.stringify(extracted).substring(0, 300));
+          console.log('  Response structure:', JSON.stringify(extracted).substring(0, 300));
         }
       }
     } else {
       console.log(`Firecrawl: No JSON data in response from ${url}`);
       if (process.env.DEBUG_EVENTS === 'true' && response.data) {
-        console.log(`  Response keys:`, Object.keys(response.data));
+        console.log('  Response keys:', Object.keys(response.data));
         if (response.data.data) {
-          console.log(`  Data keys:`, Object.keys(response.data.data));
+          console.log('  Data keys:', Object.keys(response.data.data));
         }
       }
     }
@@ -966,20 +966,20 @@ For recurring activities, set recurring: true.`;
   } catch (error) {
     // Always log errors to help debug (even 404s and timeouts)
     const errorType = error.response?.status === 404 ? '404 Not Found' :
-                      error.code === 'ECONNABORTED' || error.message.includes('timeout') ? 'Timeout' :
-                      error.response?.status ? `HTTP ${error.response.status}` :
-                      error.message || 'Unknown error';
-    
+      error.code === 'ECONNABORTED' || error.message.includes('timeout') ? 'Timeout' :
+        error.response?.status ? `HTTP ${error.response.status}` :
+          error.message || 'Unknown error';
+
     console.log(`Firecrawl: Extraction failed for ${url} - ${errorType}`);
-    
+
     if (process.env.DEBUG_EVENTS === 'true') {
       console.warn(`Firecrawl structured extraction failed for ${url}:`, error.message);
       if (error.response) {
         console.warn(`  Response status: ${error.response.status}`);
-        console.warn(`  Response data:`, JSON.stringify(error.response.data).substring(0, 200));
+        console.warn('  Response data:', JSON.stringify(error.response.data).substring(0, 200));
       }
     }
-    
+
     return [];
   }
 }
@@ -992,7 +992,7 @@ async function fetchFacebookEvents(zipcode, city, categories = []) {
   try {
     // Option 1: Use Firecrawl to scrape Facebook public event pages
     // Option 2: Use Facebook Graph API (requires app approval)
-    
+
     const apiKey = process.env.FIRECRAWL_API_KEY;
     if (!apiKey) {
       return [];
@@ -1000,10 +1000,10 @@ async function fetchFacebookEvents(zipcode, city, categories = []) {
 
     // Search Facebook for events in the area
     const searchUrl = `https://www.facebook.com/events/search/?q=${encodeURIComponent(city)}%20events`;
-    
+
     // Use Firecrawl to scrape Facebook event listings
     // Note: Facebook may block scraping, so this might not work reliably
-    
+
     return [];
   } catch (error) {
     console.error('Error fetching Facebook events:', error.message);
@@ -1023,48 +1023,48 @@ async function fetchLocalCommunityEvents(zipcode, city, state) {
     }
 
     const events = [];
-    
+
     // Common local event sources to scrape (expanded list)
     const citySlug = city.toLowerCase().replace(/\s+/g, '');
     const localSources = [
       // Parks & Recreation
       `https://www.${citySlug}parksandrec.org/events`,
-      
+
       // Community centers
       `https://www.${citySlug}communitycenter.com/calendar`,
       `https://www.${citySlug}communitycenter.org/events`,
-      
+
       // Local news event listings
       `https://www.${citySlug}times.com/events`,
       `https://www.${citySlug}news.com/events`,
-      
+
       // Chamber of Commerce
       `https://www.${citySlug}chamber.org/events`,
       `https://www.${citySlug}chamber.com/calendar`,
-      
+
       // Nextdoor events
       `https://nextdoor.com/events/${citySlug}-${state.toLowerCase()}`,
-      
+
       // University calendars
       `https://events.${citySlug}university.edu`,
       `https://calendar.${citySlug}university.edu`,
-      
+
       // Museum events
       `https://www.${citySlug}museum.org/events`,
       `https://www.${citySlug}artmuseum.org/calendar`,
-      
+
       // Religious organizations
       `https://www.${citySlug}church.org/events`,
       `https://www.${citySlug}temple.org/calendar`,
-      
+
       // Nonprofit calendars
       `https://www.${citySlug}nonprofit.org/events`,
-      `https://www.${citySlug}volunteer.org/calendar`,
+      `https://www.${citySlug}volunteer.org/calendar`
     ];
 
     // Limit to 4 URLs for speed (prioritize most common sources)
     const localSourcesLimited = localSources.slice(0, 4);
-    
+
     for (const url of localSourcesLimited) {
       try {
         // Add timeout (5 seconds max per URL)
@@ -1080,7 +1080,7 @@ async function fetchLocalCommunityEvents(zipcode, city, state) {
           timeout: 5000
         });
 
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Scrape timeout')), 5000)
         );
 
@@ -1111,22 +1111,22 @@ async function fetchLocalCommunityEvents(zipcode, city, state) {
 async function fetchRealEvents(userProfile) {
   const { zipcode, interests, preferences, affinityGroups } = userProfile;
   const categories = interests?.categories || [];
-  
+
   // Get city/state from zipcode for better searching
   const location = await geocodeZipcode(zipcode);
   const city = location?.city || 'Charlottesville'; // Fallback
   const state = location?.state || 'VA'; // Fallback
-  
+
   // Fetch from multiple sources in parallel
   console.log('=== Fetching events from all sources ===');
   console.log('Location:', { zipcode, city, state });
   console.log('Categories:', categories);
-  
+
   const specificInterests = userProfile.interests?.specific || '';
-  
+
   // Fetch from primary sources (structured APIs and Firecrawl)
   const [
-    eventbriteEvents, 
+    eventbriteEvents,
     googlePlacesEvents,
     firecrawlEvents,
     localEvents
@@ -1156,7 +1156,7 @@ async function fetchRealEvents(userProfile) {
       console.warn('Google Search fallback failed:', searchError.message);
     }
   }
-  
+
   // Only log event counts if we have some events or if debugging
   if (allEvents.length > 0 || process.env.DEBUG_EVENTS === 'true') {
     console.log('Event counts by source:');
@@ -1174,11 +1174,11 @@ async function fetchRealEvents(userProfile) {
   const now = new Date();
   const fourteenDaysFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
   const eventsWithin14Days = uniqueEvents.filter(event => {
-    if (!event.startTime) return false; // Exclude events without dates
+    if (!event.startTime) {return false;} // Exclude events without dates
     const eventDate = new Date(event.startTime);
     return eventDate >= now && eventDate <= fourteenDaysFromNow;
   });
-  
+
   // Only log if we have events or debugging is enabled
   if (eventsWithin14Days.length > 0 || process.env.DEBUG_EVENTS === 'true') {
     console.log(`Events within 14 days: ${eventsWithin14Days.length} (filtered from ${uniqueEvents.length})`);
@@ -1213,15 +1213,15 @@ function normalizeEventbriteEvents(events) {
  * Format address from venue object
  */
 function formatAddress(venue) {
-  if (!venue) return 'TBD';
-  
+  if (!venue) {return 'TBD';}
+
   const parts = [
     venue.address?.address_1,
     venue.address?.city,
     venue.address?.state,
     venue.address?.postal_code
   ].filter(Boolean);
-  
+
   return parts.join(', ') || venue.name || 'TBD';
 }
 
@@ -1231,7 +1231,7 @@ function formatAddress(venue) {
 function removeDuplicateEvents(events) {
   const seen = new Map();
   const unique = [];
-  
+
   for (const event of events) {
     const key = `${event.name?.toLowerCase()}_${event.startTime?.substring(0, 10)}`;
     if (!seen.has(key)) {
@@ -1239,7 +1239,7 @@ function removeDuplicateEvents(events) {
       unique.push(event);
     }
   }
-  
+
   return unique;
 }
 
@@ -1257,26 +1257,26 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
   try {
     const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
     const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
-    
+
     if (!apiKey || !searchEngineId) {
       return [];
     }
 
     const locationStr = `${city}, ${state}`;
-    
+
     // Enhance query with location if not already included
     let enhancedQuery = query;
     if (!query.toLowerCase().includes(city.toLowerCase()) && !query.toLowerCase().includes(state.toLowerCase())) {
       enhancedQuery = `${query} ${locationStr}`;
     }
-    
+
     // Add "upcoming" or "future" to prioritize future events
     const futureTerms = ['upcoming', 'future', 'this week', 'next week', 'this month', 'next month'];
     const hasFutureTerm = futureTerms.some(term => query.toLowerCase().includes(term));
     if (!hasFutureTerm) {
       enhancedQuery = `upcoming ${enhancedQuery}`;
     }
-    
+
     // Add event-specific terms to improve results
     const eventTerms = ['registration', 'sign up', 'register', 'event', 'workshop', 'class', 'meetup'];
     const hasEventTerm = eventTerms.some(term => query.toLowerCase().includes(term));
@@ -1295,27 +1295,27 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
       // We rely on date extraction and filtering instead
       safe: 'active'
     };
-    
+
     const response = await axios.get(url, { params, timeout: 8000 });
     const events = [];
-    
+
     if (response.data.items) {
       response.data.items.forEach(item => {
         const title = item.title.toLowerCase();
         const snippet = item.snippet || '';
         const snippetLower = snippet.toLowerCase();
         const link = item.link.toLowerCase();
-        
+
         // Enhanced filtering - skip generic places and non-events
-        const isGenericPlace = 
+        const isGenericPlace =
           link.includes('wikipedia.org') ||
           link.includes('yelp.com/biz') ||
           link.includes('yellowpages.com') ||
           (title.includes('about') && !title.includes('event') && !title.includes('class')) ||
           (snippetLower.includes('about us') && !snippetLower.includes('event') && !snippetLower.includes('class'));
-        
+
         // Enhanced event indicators
-        const hasEventIndicators = 
+        const hasEventIndicators =
           title.includes('event') ||
           title.includes('workshop') ||
           title.includes('class') ||
@@ -1340,14 +1340,14 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
           link.includes('workshop') ||
           link.includes('class') ||
           link.includes('registration');
-        
+
         if (!isGenericPlace && hasEventIndicators) {
           // Improved date extraction with better year inference
           let startTime = null;
           const now = new Date();
           const currentYear = now.getFullYear();
           const currentMonth = now.getMonth();
-          
+
           const datePatterns = [
             /(\w+day,?\s+)?(\w+\s+\d{1,2},?\s+\d{4})/i, // "Saturday, November 15, 2024"
             /(\w+day,?\s+)?(\w+\s+\d{1,2})/i, // "Saturday, November 15"
@@ -1356,13 +1356,13 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
             /(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}/i, // "November 15"
             /(today|tomorrow|this week|next week|this weekend)/i
           ];
-          
+
           for (const pattern of datePatterns) {
             const match = snippet.match(pattern) || title.match(pattern);
             if (match) {
               try {
                 let dateStr = match[0];
-                
+
                 // Handle relative dates
                 if (/today/i.test(dateStr)) {
                   dateStr = new Date().toDateString();
@@ -1382,30 +1382,30 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
                   // For dates without year, infer the year
                   // If month/day has already passed this year, assume next year
                   if (!/\d{4}/.test(dateStr)) {
-                    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
-                                      'july', 'august', 'september', 'october', 'november', 'december'];
+                    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
+                      'july', 'august', 'september', 'october', 'november', 'december'];
                     const monthMatch = dateStr.match(/(january|february|march|april|may|june|july|august|september|october|november|december)/i);
                     const dayMatch = dateStr.match(/\b(\d{1,2})\b/);
-                    
+
                     if (monthMatch && dayMatch) {
                       const monthIndex = monthNames.findIndex(m => m.toLowerCase() === monthMatch[1].toLowerCase());
                       const day = parseInt(dayMatch[1]);
-                      
+
                       // Create date for this year
                       let testDate = new Date(currentYear, monthIndex, day);
-                      
+
                       // If date has passed this year, use next year
                       if (testDate < now) {
                         testDate = new Date(currentYear + 1, monthIndex, day);
                       }
-                      
+
                       dateStr = testDate.toDateString();
                     }
                   }
                 }
-                
+
                 const parsed = new Date(dateStr);
-                
+
                 // Only accept dates that are in the future and within the next 60 days
                 const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
                 if (!isNaN(parsed.getTime()) && parsed > now && parsed <= sixtyDaysFromNow) {
@@ -1417,11 +1417,11 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
               }
             }
           }
-          
+
           // Extract time if available
           const timePattern = /(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)/i;
           const timeMatch = snippet.match(timePattern);
-          
+
           events.push({
             name: item.title,
             description: snippet.substring(0, 300), // Limit description length
@@ -1437,7 +1437,7 @@ async function fetchGoogleSearchEventsByQuery(query, zipcode, city, state, categ
         }
       });
     }
-    
+
     return events;
   } catch (error) {
     if (process.env.DEBUG_EVENTS === 'true') {
@@ -1457,14 +1457,14 @@ function extractVenueName(title, snippet) {
     /@\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/, // "@ Golden Gate Park"
     /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+in\s+/ // "Golden Gate Park in"
   ];
-  
+
   for (const pattern of venuePatterns) {
     const match = (title + ' ' + snippet).match(pattern);
     if (match && match[1]) {
       return match[1];
     }
   }
-  
+
   return null;
 }
 
@@ -1478,7 +1478,7 @@ function extractCost(snippet) {
     /(\d+)\s*dollars?/i, // "20 dollars"
     /(\d+)\s*USD/i // "20 USD"
   ];
-  
+
   for (const pattern of costPatterns) {
     const match = snippet.match(pattern);
     if (match) {
@@ -1488,7 +1488,7 @@ function extractCost(snippet) {
       return `$${match[1] || match[0]}`;
     }
   }
-  
+
   return null;
 }
 
@@ -1505,7 +1505,7 @@ function extractCost(snippet) {
 async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, category = '') {
   try {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    
+
     if (!apiKey) {
       return [];
     }
@@ -1519,13 +1519,13 @@ async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, categ
     // Extract key activity terms and add location
     const locationStr = `${city}, ${state}`;
     let textQuery = query;
-    
+
     // Remove negative keywords and location if already in query
     const negativeKeywords = ['-supplies', '-store', '-shop', '-gallery', '-equipment', '-retail'];
     negativeKeywords.forEach(keyword => {
       textQuery = textQuery.replace(new RegExp(keyword, 'gi'), '');
     });
-    
+
     // Ensure location is included
     if (!textQuery.toLowerCase().includes(city.toLowerCase())) {
       textQuery = `${textQuery} ${locationStr}`;
@@ -1558,7 +1558,7 @@ async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, categ
       'Health & Wellness': ['spa', 'gym', 'yoga_studio'],
       'Social & Networking': ['community_center', 'restaurant', 'cafe']
     };
-    
+
     if (category && categoryTypeMap[category]) {
       requestBody.includedTypes = categoryTypeMap[category].slice(0, 5);
     }
@@ -1573,30 +1573,30 @@ async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, categ
     });
 
     const events = [];
-    
+
     if (response.data && response.data.places) {
       response.data.places.forEach(place => {
         const name = place.displayName?.text || '';
         const types = place.types || [];
         const lowerName = name.toLowerCase();
-        
+
         // Enhanced activity indicators
         const activityIndicators = [
           'class', 'workshop', 'studio', 'school', 'center', 'club', 'academy',
           'training', 'learning', 'education', 'gym', 'fitness', 'yoga',
           'meetup', 'group', 'league', 'team'
         ];
-        
-        const hasActivityIndicator = 
+
+        const hasActivityIndicator =
           activityIndicators.some(indicator => lowerName.includes(indicator)) ||
           types.some(type => [
             'art_school', 'yoga_studio', 'gym', 'community_center', 'school',
             'fitness_center', 'sports_club', 'training_center', 'cooking_school'
           ].includes(type));
-        
+
         // Only include places that are open and have activity indicators
         const isOpen = place.businessStatus !== 'CLOSED_PERMANENTLY';
-        
+
         if (hasActivityIndicator && isOpen) {
           events.push({
             name: name,
@@ -1619,7 +1619,7 @@ async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, categ
         }
       });
     }
-    
+
     return events;
   } catch (error) {
     if (process.env.DEBUG_EVENTS === 'true') {
@@ -1641,11 +1641,11 @@ async function fetchGooglePlacesEventsByQuery(query, zipcode, city, state, categ
 async function searchEventsByQueries(searchQueries, zipcode, city, state, category = '') {
   const events = [];
   const isTestMode = process.env.TEST_MODE === 'true';
-  
+
   // In test mode, limit to 1 query per concept for speed
   // Otherwise limit to 3 queries per concept to avoid excessive API calls
   const limitedQueries = isTestMode ? searchQueries.slice(0, 1) : searchQueries.slice(0, 3);
-  
+
   for (const query of limitedQueries) {
     try {
       // Use Google Custom Search as primary source (most reliable for finding events)
@@ -1656,7 +1656,7 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
           console.log(`Google Search: Found ${googleEvents.length} events for query "${query.substring(0, 50)}"`);
         }
       }
-      
+
       // Also use Google Places API 2.0 for activity venues
       if (process.env.GOOGLE_MAPS_API_KEY) {
         const placesEvents = await fetchGooglePlacesEventsByQuery(query, zipcode, city, state, category);
@@ -1665,7 +1665,7 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
           console.log(`Google Places: Found ${placesEvents.length} venues for query "${query.substring(0, 50)}"`);
         }
       }
-      
+
       // Note: Eventbrite API v3 doesn't have a public /events/search endpoint
       // The search endpoint requires OAuth 2.0 or organization-specific access
       // For now, we'll skip Eventbrite search and rely on Google Custom Search
@@ -1676,22 +1676,22 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
           if (location) {
             // Extract activity-focused keywords from query (PRD pattern)
             // Remove location, stop words, and negative keywords
-            const stopWords = ['in', 'at', 'the', 'a', 'an', 'for', 'to', 'of', 'and', 'or', 
-                              'join', 'learn', 'take', 'attend', 'participate', 'enroll',
-                              city, state, zipcode, 'registration', 'sign', 'up'];
+            const stopWords = ['in', 'at', 'the', 'a', 'an', 'for', 'to', 'of', 'and', 'or',
+              'join', 'learn', 'take', 'attend', 'participate', 'enroll',
+              city, state, zipcode, 'registration', 'sign', 'up'];
             const negativeWords = ['supplies', 'store', 'shop', 'gallery', 'equipment', 'retail'];
-            
+
             const queryKeywords = query.toLowerCase()
               .split(/\s+/)
               .filter(word => {
-                return word.length > 2 && 
-                       !stopWords.includes(word) && 
+                return word.length > 2 &&
+                       !stopWords.includes(word) &&
                        !negativeWords.includes(word) &&
                        !word.startsWith('-');
               })
               .slice(0, 4) // Get more keywords for better matching
               .join(' ');
-            
+
             if (queryKeywords.length > 0) {
               const eventbriteUrl = 'https://www.eventbriteapi.com/v3/events/search'; // No trailing slash
               const eventbriteParams = {
@@ -1705,7 +1705,7 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
                 'start_date.range_end': new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
                 'expand': 'venue,category'
               };
-              
+
               // Try Bearer token first, fallback to query parameter
               let eventbriteResponse;
               try {
@@ -1752,7 +1752,7 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
                   throw bearerError;
                 }
               }
-              
+
               if (eventbriteResponse && eventbriteResponse.data && eventbriteResponse.data.events) {
                 const eventbriteEvents = normalizeEventbriteEvents(eventbriteResponse.data.events);
                 console.log(`Eventbrite found ${eventbriteEvents.length} events for query "${queryKeywords}"`);
@@ -1766,13 +1766,13 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
           }
         } catch (eventbriteError) {
           // Eventbrite search failed, continue with other sources
-          const errorDetails = eventbriteError.response 
+          const errorDetails = eventbriteError.response
             ? `Status: ${eventbriteError.response.status}, Data: ${JSON.stringify(eventbriteError.response.data).substring(0, 200)}`
             : eventbriteError.message;
           console.warn(`Eventbrite search failed for query "${query}": ${errorDetails}`);
         }
       }
-      
+
       // Use Firecrawl with structured JSON extraction
       // Firecrawl targets event calendars directly (city sites, community centers, libraries, Reddit wikis)
       if (process.env.FIRECRAWL_API_KEY && city && state) {
@@ -1780,47 +1780,47 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
           const firecrawlApiKey = process.env.FIRECRAWL_API_KEY;
           const citySlug = city.toLowerCase().replace(/\s+/g, '');
           const locationStr = `${city}, ${state}`;
-          
+
           // Build activity-focused URLs following PRD patterns
           // Prioritize URLs that are more likely to allow scraping (Meetup, then city sites)
           // Use simpler URLs (base pages or simple search formats)
           const activityUrlPatterns = [
             // Meetup with activity keywords (public search results - most reliable for scraping)
             `https://www.meetup.com/find/?keywords=${encodeURIComponent(query.split(' ').slice(0, 3).join(' '))}&location=${citySlug}-${state.toLowerCase()}`,
-            
+
             // Eventbrite location browse (simpler format - just location, no query in path)
             `https://www.eventbrite.com/d/${state.toLowerCase()}--${citySlug}/`,
-            
+
             // City event calendars (simplified URLs - base pages without query params)
             `https://www.${citySlug}.gov/events`,
             `https://www.${citySlug}parksandrec.org/events`,
-            
+
             // Libraries with event calendars (base pages)
             `https://www.${citySlug}library.org/events`,
-            
+
             // Community centers with activity pages
             `https://www.${citySlug}communitycenter.org/classes`,
             `https://www.${citySlug}communitycenter.org/workshops`,
-            
+
             // Reddit wiki pages (community-curated, but often blocks scraping - try last)
             `https://www.reddit.com/r/${citySlug}/wiki/events`,
             `https://www.reddit.com/r/${citySlug}/wiki/clubs`
           ];
-          
+
           // Use structured JSON extraction (limit to 1-2 URLs per query in test mode)
           const urlsToTry = isTestMode ? activityUrlPatterns.slice(0, 1) : activityUrlPatterns.slice(0, 2);
           console.log(`Firecrawl: Attempting structured extraction from ${urlsToTry.length} URLs for query "${query}"`);
-          
+
           for (const url of urlsToTry) {
             try {
               const extractedEvents = await fetchFirecrawlEventsStructured(
-                url, 
-                query, 
-                city, 
-                state, 
+                url,
+                query,
+                city,
+                state,
                 category
               );
-              
+
               if (extractedEvents.length > 0) {
                 events.push(...extractedEvents);
                 console.log(`Firecrawl: Added ${extractedEvents.length} events from ${url}`);
@@ -1846,7 +1846,7 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
       continue;
     }
   }
-  
+
   // Filter out past events and events without valid future dates
   const now = new Date();
   const futureEvents = events.filter(event => {
@@ -1856,17 +1856,17 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
       const trustedPlatforms = ['eventbrite.com', 'meetup.com', 'facebook.com/events'];
       const url = (event.url || '').toLowerCase();
       const isFromTrustedPlatform = trustedPlatforms.some(platform => url.includes(platform));
-      
+
       if (isFromTrustedPlatform) {
         // Accept events from trusted platforms even without dates
         // They're likely upcoming events
         return true;
       }
-      
+
       // For other sources, exclude events without dates to avoid past events
       return false;
     }
-    
+
     try {
       const eventDate = new Date(event.startTime);
       // Only include events in the future (at least 1 hour from now to account for timezone issues)
@@ -1877,11 +1877,11 @@ async function searchEventsByQueries(searchQueries, zipcode, city, state, catego
       return false;
     }
   });
-  
+
   if (futureEvents.length < events.length) {
     console.log(`Filtered out ${events.length - futureEvents.length} past/invalid events from search results`);
   }
-  
+
   // Remove duplicates and return
   return removeDuplicateEvents(futureEvents);
 }

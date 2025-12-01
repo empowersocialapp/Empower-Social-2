@@ -46,12 +46,12 @@ function validateSurveyData(data) {
   if (!data.zipcode || typeof data.zipcode !== 'string' || !zipcodeRegex.test(data.zipcode.trim())) {
     return { valid: false, error: 'Valid zipcode is required (5 digits)' };
   }
-  
+
   // Validate personality scores (Q1, Q6, Q3, Q8, Q5, Q10 - 1-7 scale)
   if (!data.personality || typeof data.personality !== 'object') {
     return { valid: false, error: 'Personality scores are required' };
   }
-  
+
   const personalityQuestions = ['q1', 'q6', 'q3', 'q8', 'q5', 'q10'];
   for (const q of personalityQuestions) {
     const score = data.personality[q];
@@ -59,12 +59,12 @@ function validateSurveyData(data) {
       return { valid: false, error: `Personality question ${q} must be a number between 1 and 7` };
     }
   }
-  
+
   // Validate motivation scores (M1-M6 - 1-5 scale)
   if (!data.motivation || typeof data.motivation !== 'object') {
     return { valid: false, error: 'Motivation scores are required' };
   }
-  
+
   const motivationQuestions = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
   for (const m of motivationQuestions) {
     const score = data.motivation[m];
@@ -72,12 +72,12 @@ function validateSurveyData(data) {
       return { valid: false, error: `Motivation question ${m} must be a number between 1 and 5` };
     }
   }
-  
+
   // Validate at least one interest category is selected
   if (!data.interests || !data.interests.categories || !Array.isArray(data.interests.categories) || data.interests.categories.length === 0) {
     return { valid: false, error: 'Please select at least one interest category' };
   }
-  
+
   return { valid: true };
 }
 
@@ -88,7 +88,7 @@ function validateSurveyData(data) {
 router.post('/submit-survey', async (req, res) => {
   try {
     const surveyData = req.body;
-    
+
     // Validate request body
     if (!surveyData || typeof surveyData !== 'object') {
       return res.status(400).json({
@@ -96,13 +96,13 @@ router.post('/submit-survey', async (req, res) => {
         error: 'Request body is required'
       });
     }
-    
+
     // Check if this is an edit mode submission
     const isEditMode = surveyData.isEdit === true && surveyData.userId;
     let userId;
     let surveyResponseId;
     let calculatedScoresId;
-    
+
     // Extract user data
     const userData = {
       name: surveyData.name.trim(),
@@ -112,11 +112,11 @@ router.post('/submit-survey', async (req, res) => {
       gender: surveyData.gender.trim(),
       zipcode: surveyData.zipcode.trim()
     };
-    
+
     if (isEditMode) {
       // EDIT MODE: Update existing records
       userId = surveyData.userId;
-      
+
       // Validate all required fields
       const validation = validateSurveyData(surveyData);
       if (!validation.valid) {
@@ -125,7 +125,7 @@ router.post('/submit-survey', async (req, res) => {
           error: validation.error
         });
       }
-      
+
       // Step 1: Update user record
       try {
         await base('Users').update(userId, {
@@ -142,7 +142,7 @@ router.post('/submit-survey', async (req, res) => {
           error: `Failed to update user: ${userError.message}`
         });
       }
-      
+
       // Step 2: Find and update existing survey response
       let surveyResponses = await base('Survey_Responses')
         .select({
@@ -150,28 +150,28 @@ router.post('/submit-survey', async (req, res) => {
           maxRecords: 1
         })
         .firstPage();
-      
+
       // Fallback: fetch all and filter
       if (surveyResponses.length === 0) {
         const allRecent = await base('Survey_Responses')
           .select({ maxRecords: 100 })
           .firstPage();
-        
+
         surveyResponses = allRecent.filter(record => {
           const userLinks = record.fields.User || [];
           return Array.isArray(userLinks) && userLinks.includes(userId);
         });
       }
-      
+
       if (surveyResponses.length === 0) {
         return res.status(404).json({
           success: false,
           error: 'No survey response found to update'
         });
       }
-      
+
       surveyResponseId = surveyResponses[0].id;
-      
+
       // Update survey response
       const updateResult = await updateSurveyResponse(surveyResponseId, surveyData);
       if (!updateResult.success) {
@@ -180,7 +180,7 @@ router.post('/submit-survey', async (req, res) => {
           error: `Failed to update survey response: ${updateResult.error}`
         });
       }
-      
+
       // Step 3: Update calculated scores
       const scoresResult = await updateCalculatedScores(userId, surveyResponseId);
       if (!scoresResult.success) {
@@ -189,44 +189,44 @@ router.post('/submit-survey', async (req, res) => {
           error: `Failed to update calculated scores: ${scoresResult.error}`
         });
       }
-      
+
       calculatedScoresId = scoresResult.data.calculatedScoresId;
-      
+
       // Small delay to ensure Airtable has fully updated the record
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Step 4: Regenerate recommendations with updated data
       // Re-fetch the survey response to ensure we have the latest data
       const updatedSurveyResponse = await base('Survey_Responses').find(surveyResponseId);
       console.log('Updated Interest_Categories:', updatedSurveyResponse.fields.Interest_Categories);
-      
+
       const { generateRecommendationsV2 } = require('../services/recommendations-v2');
-      
+
       let recommendationsResult;
       try {
         console.log('Attempting conceptual recommendation system for survey update (bypassing cache)...');
         recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId, null, true);
-        
+
         if (!recommendationsResult.success) {
           console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
           throw new Error(recommendationsResult.error);
         }
       } catch (v2Error) {
         console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
-        
+
         // Fallback to legacy system
         const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
         recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
-        
+
         if (!recommendationsResult.success) {
           return res.status(500).json({
             success: false,
             error: `Failed to regenerate recommendations: ${recommendationsResult.error}`
           });
         }
-        
+
         const { recommendations, promptText } = recommendationsResult.data;
-        
+
         // Save prompt and recommendations to GPT_Prompts table
         const saveResult = await savePromptToAirtable(
           userId,
@@ -235,11 +235,11 @@ router.post('/submit-survey', async (req, res) => {
           promptText,
           recommendations
         );
-        
+
         if (!saveResult.success) {
           console.error('Failed to save prompt to Airtable:', saveResult.error);
         }
-        
+
         // Success response with recommendations
         return res.status(200).json({
           success: true,
@@ -248,17 +248,17 @@ router.post('/submit-survey', async (req, res) => {
           message: 'Survey updated successfully and recommendations regenerated (legacy system)'
         });
       }
-      
+
       // Conceptual system succeeded
       const { recommendations, stats } = recommendationsResult.data;
-      
+
       // Convert array to string if needed (v2 system returns array)
       const recommendationsText = Array.isArray(recommendations)
         ? recommendations.map(r =>
-            `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
-          ).join('\n\n---\n\n')
+          `${r.name}\n${r.whyItMatches}\n${r.date} ${r.time} at ${r.location}\n${r.url}`
+        ).join('\n\n---\n\n')
         : recommendations;
-      
+
       return res.status(200).json({
         success: true,
         userId: userId,
@@ -275,7 +275,7 @@ router.post('/submit-survey', async (req, res) => {
           error: validation.error
         });
       }
-      
+
       // Step 1: Create user record
       const userResult = await createUser(userData);
       if (!userResult.success) {
@@ -284,90 +284,90 @@ router.post('/submit-survey', async (req, res) => {
           error: `Failed to create user: ${userResult.error}`
         });
       }
-      
+
       userId = userResult.data.userId;
-    
-    // Step 2: Create survey response record
-    const surveyResult = await createSurveyResponse(surveyData, userId);
-    if (!surveyResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: `Failed to create survey response: ${surveyResult.error}`
-      });
-    }
-    
-    const surveyResponseId = surveyResult.data.surveyResponseId;
-    
-    // Step 3: Create calculated scores record
-    const scoresResult = await createCalculatedScores(userId, surveyResponseId);
-    if (!scoresResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: `Failed to create calculated scores: ${scoresResult.error}`
-      });
-    }
-    
-    const calculatedScoresId = scoresResult.data.calculatedScoresId;
-    
-    // Step 4: Generate conceptual recommendations
-    const { generateRecommendationsV2 } = require('../services/recommendations-v2');
-    
-    let recommendationsResult;
-    try {
-      console.log('Attempting conceptual recommendation system for survey submission...');
-      recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId);
-      
-      if (!recommendationsResult.success) {
-        console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
-        throw new Error(recommendationsResult.error);
-      }
-    } catch (v2Error) {
-      console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
-      
-      // Fallback to legacy system
-      const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
-      recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
-      
-      if (!recommendationsResult.success) {
+
+      // Step 2: Create survey response record
+      const surveyResult = await createSurveyResponse(surveyData, userId);
+      if (!surveyResult.success) {
         return res.status(500).json({
           success: false,
-          error: `Failed to generate recommendations: ${recommendationsResult.error}`
+          error: `Failed to create survey response: ${surveyResult.error}`
         });
       }
-      
-      const { recommendations, promptText } = recommendationsResult.data;
-      
-      // Save prompt and recommendations to GPT_Prompts table
-      const saveResult = await savePromptToAirtable(
-        userId,
-        surveyResponseId,
-        calculatedScoresId,
-        promptText,
-        recommendations
-      );
-      
-      if (!saveResult.success) {
-        console.error('Failed to save prompt to Airtable:', saveResult.error);
+
+      const surveyResponseId = surveyResult.data.surveyResponseId;
+
+      // Step 3: Create calculated scores record
+      const scoresResult = await createCalculatedScores(userId, surveyResponseId);
+      if (!scoresResult.success) {
+        return res.status(500).json({
+          success: false,
+          error: `Failed to create calculated scores: ${scoresResult.error}`
+        });
       }
-      
-      // Success response with recommendations
+
+      const calculatedScoresId = scoresResult.data.calculatedScoresId;
+
+      // Step 4: Generate conceptual recommendations
+      const { generateRecommendationsV2 } = require('../services/recommendations-v2');
+
+      let recommendationsResult;
+      try {
+        console.log('Attempting conceptual recommendation system for survey submission...');
+        recommendationsResult = await generateRecommendationsV2(userId, surveyResponseId, calculatedScoresId);
+
+        if (!recommendationsResult.success) {
+          console.warn('Conceptual system failed, falling back to legacy:', recommendationsResult.error);
+          throw new Error(recommendationsResult.error);
+        }
+      } catch (v2Error) {
+        console.log('Conceptual system failed, using legacy system as fallback:', v2Error.message);
+
+        // Fallback to legacy system
+        const { generateRecommendations, savePromptToAirtable } = require('../services/openai');
+        recommendationsResult = await generateRecommendations(userId, surveyResponseId, calculatedScoresId);
+
+        if (!recommendationsResult.success) {
+          return res.status(500).json({
+            success: false,
+            error: `Failed to generate recommendations: ${recommendationsResult.error}`
+          });
+        }
+
+        const { recommendations, promptText } = recommendationsResult.data;
+
+        // Save prompt and recommendations to GPT_Prompts table
+        const saveResult = await savePromptToAirtable(
+          userId,
+          surveyResponseId,
+          calculatedScoresId,
+          promptText,
+          recommendations
+        );
+
+        if (!saveResult.success) {
+          console.error('Failed to save prompt to Airtable:', saveResult.error);
+        }
+
+        // Success response with recommendations
+        return res.status(201).json({
+          success: true,
+          userId: userId,
+          recommendations: recommendations,
+          message: 'Survey submitted successfully and recommendations generated (legacy system)'
+        });
+      }
+
+      // Conceptual system succeeded - recommendations are already saved in generateRecommendationsV2
+      // Return success response with userId for frontend redirect
       return res.status(201).json({
         success: true,
         userId: userId,
-        recommendations: recommendations,
-        message: 'Survey submitted successfully and recommendations generated (legacy system)'
+        message: 'Survey submitted successfully and recommendations generated'
       });
     }
-    
-    // Conceptual system succeeded - recommendations are already saved in generateRecommendationsV2
-    // Return success response with userId for frontend redirect
-    return res.status(201).json({
-      success: true,
-      userId: userId,
-      message: 'Survey submitted successfully and recommendations generated'
-    });
-    }
-    
+
   } catch (error) {
     console.error('Error in submit-survey endpoint:', error);
     return res.status(500).json({
@@ -501,7 +501,7 @@ router.get('/survey/:userId', async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching survey data:', error);
-    
+
     // Handle Airtable-specific errors
     if (error.error === 'NOT_FOUND') {
       return res.status(404).json({
@@ -509,7 +509,7 @@ router.get('/survey/:userId', async (req, res) => {
         error: 'User or survey data not found. Please make sure you have completed the survey.'
       });
     }
-    
+
     return res.status(500).json({
       success: false,
       error: error.message || 'Internal server error'
