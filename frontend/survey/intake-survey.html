@@ -2182,23 +2182,84 @@
             e.preventDefault();
             console.log('Form submission started');
             
-            // Check form validity manually
-            if (!form.checkValidity()) {
-                console.log('Form validation failed');
-                form.reportValidity();
-                return;
+            // Get submit button - try multiple ways to find it
+            let submitButton = form.querySelector('button[type="submit"]');
+            if (!submitButton) {
+                // Try finding the currently visible submit button
+                const visiblePages = Array.from(form.querySelectorAll('.survey-page'));
+                const currentPage = visiblePages.find(page => page.style.display !== 'none');
+                if (currentPage) {
+                    submitButton = currentPage.querySelector('button[type="submit"]');
+                }
             }
-            
-            // Get submit button and disable it
-            const submitButton = e.target.querySelector('button[type="submit"]');
+            if (!submitButton) {
+                // Last resort: find any submit button
+                submitButton = document.querySelector('button[type="submit"]');
+            }
             if (!submitButton) {
                 console.error('Submit button not found!');
                 alert('Error: Submit button not found. Please refresh the page.');
                 return;
             }
+            
+            // Check form validity manually (but don't block if novalidate is set)
+            // Instead, do manual validation of required fields
+            const firstName = document.getElementById('firstName')?.value.trim();
+            const username = document.getElementById('username')?.value.trim();
+            const email = document.getElementById('email')?.value.trim();
+            const age = document.getElementById('age')?.value;
+            const gender = document.getElementById('gender')?.value;
+            const zipcode = document.getElementById('zipcode')?.value.trim();
+            
+            if (!firstName || !username || !email || !age || !gender || !zipcode) {
+                alert('Please fill out all required fields on page 1 (Name, Username, Email, Age, Gender, Zip Code).');
+                // Navigate to page 1
+                document.querySelectorAll('.survey-page').forEach(page => page.classList.remove('active'));
+                document.getElementById('page1').classList.add('active');
+                currentPage = 1;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            
+            // Validate zipcode format
+            if (!/^\d{5}$/.test(zipcode)) {
+                alert('Please enter a valid 5-digit zip code.');
+                document.querySelectorAll('.survey-page').forEach(page => page.classList.remove('active'));
+                document.getElementById('page1').classList.add('active');
+                currentPage = 1;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            
+            // Validate username format
+            if (!/^[a-zA-Z0-9_-]{3,20}$/.test(username)) {
+                alert('Username must be 3-20 characters and contain only letters, numbers, hyphens, or underscores.');
+                document.querySelectorAll('.survey-page').forEach(page => page.classList.remove('active'));
+                document.getElementById('page1').classList.add('active');
+                currentPage = 1;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            
+            // Validate email format
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Please enter a valid email address.');
+                document.querySelectorAll('.survey-page').forEach(page => page.classList.remove('active'));
+                document.getElementById('page1').classList.add('active');
+                currentPage = 1;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
             const originalButtonText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
+            
+            console.log('Submit button found:', submitButton);
+            console.log('Form validation passed, proceeding with submission...');
             
             // Show loading spinner
             showLoadingSpinner();
