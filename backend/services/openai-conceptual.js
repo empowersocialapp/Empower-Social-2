@@ -437,18 +437,43 @@ EXAMPLES OF BAD QUERIES (AVOID - SOLO OR GENERIC):
 ❌ "running solo" (not social)
 ❌ "camping trip" (rural, not urban)
 
+TONE REQUIREMENTS FOR "whyItMatches":
+
+1. Use second-person: "you" and "your", never the user's name or "he/she/they"
+
+2. Be warm and encouraging, not clinical or diagnostic. You're a friendly guide, not a therapist.
+
+3. NEVER use negative framing about the user's social situation:
+   - Never say: "loneliness", "lonely", "social dissatisfaction", "few friends", "isolated", "addressing loneliness", "alleviate loneliness"
+   - Instead say: "build connections", "find your people", "expand your circle", "meet like-minded people", "build meaningful friendships", "find your community"
+
+4. Frame everything as opportunity, not deficit:
+   - Not: "This helps with your loneliness" or "addressing your social dissatisfaction"
+   - Yes: "This is a great way to meet people who share your interests" or "Perfect for building the kind of connections you're looking for"
+
+5. Keep it brief and positive: 2-3 sentences that make the user excited to try this activity.
+
+6. Examples of good framing:
+   - Instead of "addressing your loneliness" → "helping you build meaningful connections"
+   - Instead of "you have few close friends" → "you're looking to build deeper friendships"
+   - Instead of "your social dissatisfaction" → "your goal to find your people"
+   - Instead of "alleviate loneliness" → "expand your social circle"
+   - Instead of "high loneliness score" → "you value quality connections"
+
 OUTPUT FORMAT (JSON):
 {
   "concepts": [
     {
       "conceptName": "Descriptive name of ideal event",
       "category": "Category name",
-      "whyItMatches": "COMPREHENSIVE explanation (3-4 sentences) covering:
-        - Interest alignment: How this matches their specific interests (${survey.Specific_Interests || 'their stated interests'}) and interest categories (${Array.isArray(survey.Interest_Categories) ? survey.Interest_Categories.join(', ') : survey.Interest_Categories})
-        - Personality fit: How this aligns with their ${scores.Extraversion_Category} extraversion (${scores.Extraversion_Raw}/14 - ${extraversionInterp}), ${scores.Conscientiousness_Category} conscientiousness (${scores.Conscientiousness_Raw}/14 - ${conscientiousnessInterp}), and ${scores.Openness_Category} openness (${scores.Openness_Raw}/14 - ${opennessInterp})
-        - Motivation match: How this supports their ${scores.Primary_Motivation} motivation - specifically their intrinsic/fun-seeking (${scores.Intrinsic_Motivation.toFixed(1)}/5), social/connection-seeking (${scores.Social_Motivation.toFixed(1)}/5), and achievement/skill-building (${scores.Achievement_Motivation.toFixed(1)}/5) motivations
-        - Social needs: How this addresses their social situation - they have ${survey.Close_Friends_Count} close friends, rate their social satisfaction as ${survey.Social_Satisfaction}, and experience loneliness ${survey.Loneliness_Frequency}
-        - Practical fit: How this works with their ${survey.Free_Time_Per_Week} free time per week and willingness to travel ${survey.Travel_Distance_Willing}",
+      "whyItMatches": "WARM, ENCOURAGING explanation (2-3 sentences) using second-person ("you", "your"). Cover:
+        - Interest alignment: How this matches YOUR specific interests (${survey.Specific_Interests || 'your stated interests'}) and interest categories (${Array.isArray(survey.Interest_Categories) ? survey.Interest_Categories.join(', ') : survey.Interest_Categories})
+        - Personality fit: How this aligns with YOUR ${scores.Extraversion_Category} extraversion, ${scores.Conscientiousness_Category} conscientiousness, and ${scores.Openness_Category} openness preferences
+        - Motivation match: How this supports YOUR ${scores.Primary_Motivation} motivation - your desire for fun (${scores.Intrinsic_Motivation.toFixed(1)}/5), connection (${scores.Social_Motivation.toFixed(1)}/5), or skill-building (${scores.Achievement_Motivation.toFixed(1)}/5)
+        - Social connection: Frame positively - if they want more connections, say "great way to meet like-minded people" or "perfect for building meaningful friendships", NOT "addressing loneliness" or "alleviate loneliness"
+        - Practical fit: How this works with YOUR ${survey.Free_Time_Per_Week} free time per week and willingness to travel ${survey.Travel_Distance_Willing}
+        
+        CRITICAL: Use warm, encouraging language. Frame social needs as opportunities ("find your people", "build connections") not deficits ("loneliness", "few friends").",
       "idealCharacteristics": {
         "setting": "indoor/outdoor/mixed",
         "groupSize": "small/medium/large",

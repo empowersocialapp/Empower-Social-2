@@ -533,17 +533,63 @@ function escapeHtml(text) {
 }
 
 /**
+ * Warmify text by replacing clinical/negative language with positive, encouraging alternatives
+ * @param {string} text - Text to warmify
+ * @returns {string} Warmified text
+ */
+function warmifyText(text) {
+  if (!text) return '';
+  return text
+    // Fix third-person to second-person
+    .replace(/\b(his|her|their)\b/gi, 'your')
+    .replace(/\b(he|she|they)\b/gi, 'you')
+    .replace(/\b(him|her|them)\b/gi, 'you')
+    
+    // Remove clinical/negative framing about loneliness
+    .replace(/your (high )?loneliness/gi, 'your desire for connection')
+    .replace(/address(ing|es)? (your )?loneliness/gi, 'building meaningful connections')
+    .replace(/alleviate (your )?loneliness/gi, 'expand your social circle')
+    .replace(/combat(ing)? (your )?loneliness/gi, 'build your community')
+    .replace(/reduce (your )?loneliness/gi, 'grow your social circle')
+    .replace(/you (are|feel) lonely/gi, 'you want to connect with others')
+    .replace(/loneliness/gi, 'desire for connection')
+    
+    // Remove negative framing about social satisfaction
+    .replace(/social dissatisfaction/gi, 'goal to find your community')
+    .replace(/low social satisfaction/gi, 'ready for a stronger community')
+    .replace(/dissatisfied with your social/gi, 'looking to expand your social')
+    
+    // Remove negative framing about friend count
+    .replace(/few (close )?friends/gi, 'looking to build deeper friendships')
+    .replace(/you have (few|not many) (close )?friends/gi, 'you\'re looking to build deeper friendships')
+    .replace(/limited (social )?connections/gi, 'opportunity to build connections')
+    
+    // Remove clinical language
+    .replace(/isolated/gi, 'looking to connect')
+    .replace(/isolation/gi, 'connection')
+    .replace(/social deficit/gi, 'social opportunity')
+    
+    // Fix any remaining third-person references
+    .replace(/\b(the user|this user)\b/gi, 'you')
+    .replace(/\b(user's|users')\b/gi, 'your')
+    .trim();
+}
+
+/**
  * Format the "why matches" explanation with proper styling for the new conversational format
  */
 function formatWhyMatches(text) {
   if (!text) {return '';}
 
+  // Warmify the text first to ensure positive, encouraging language
+  const warmText = warmifyText(text);
+
   // Check if it's the new conversational format (has markdown headers)
-  if (text.includes('**Why we think you\'ll like this:**')) {
+  if (warmText.includes('**Why we think you\'ll like this:**')) {
     // Split into sections
-    const whyMatch = text.match(/\*\*Why we think you'll like this:\*\*\s*(.+?)(?=\*\*A few things to keep in mind:\*\*|$)/is);
-    const thingsMatch = text.match(/\*\*A few things to keep in mind:\*\*\s*(.+?)(?=\*\*Bottom line:\*\*|$)/is);
-    const bottomLineMatch = text.match(/\*\*Bottom line:\*\*\s*(.+?)$/is);
+    const whyMatch = warmText.match(/\*\*Why we think you'll like this:\*\*\s*(.+?)(?=\*\*A few things to keep in mind:\*\*|$)/is);
+    const thingsMatch = warmText.match(/\*\*A few things to keep in mind:\*\*\s*(.+?)(?=\*\*Bottom line:\*\*|$)/is);
+    const bottomLineMatch = warmText.match(/\*\*Bottom line:\*\*\s*(.+?)$/is);
 
     let html = '';
 
@@ -591,9 +637,9 @@ function formatWhyMatches(text) {
 
     return html;
   } else {
-    // Old format - just display as-is
+    // Old format - just display as-is (already warmified above)
     return `<div style="font-size: 14px; color: #FF8C42; font-weight: 600; margin-bottom: 8px;">Why this matches you:</div>
-                <div style="font-size: 14px; color: #555; line-height: 1.6;">${escapeHtml(text)}</div>`;
+                <div style="font-size: 14px; color: #555; line-height: 1.6;">${escapeHtml(warmText)}</div>`;
   }
 }
 
