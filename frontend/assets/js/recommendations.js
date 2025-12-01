@@ -1,4 +1,24 @@
 /**
+ * Clean recommendation title by removing markdown formatting and prefixes
+ * @param {string} title - Raw title string
+ * @returns {string} Cleaned title
+ */
+function cleanTitle(title) {
+  if (!title) return '';
+  return title
+    // Remove combined patterns first (most specific)
+    .replace(/^#+\s*Recommendation\s+\d+:\s*/i, '')  // Remove "### Recommendation 1:" or "## Recommendation 1:"
+    .replace(/^\d+\.\s*#+\s*Recommendation\s+\d+:\s*/i, '')  // Remove "1. ### Recommendation 1:"
+    .replace(/^\d+\.\s*Recommendation\s+\d+:\s*/i, '')  // Remove "1. Recommendation 1:"
+    // Then remove individual components
+    .replace(/^#+\s*/, '')           // Remove leading ###
+    .replace(/^Recommendation\s+\d+:\s*/i, '')  // Remove "Recommendation 1:"
+    .replace(/\*\*/g, '')            // Remove bold markdown
+    .replace(/^\d+\.\s*/, '')        // Remove leading "1. "
+    .trim();
+}
+
+/**
  * Parse GPT-generated recommendations text into structured data
  */
 function parseRecommendations(text) {
@@ -48,7 +68,11 @@ function parseRecommendations(text) {
 
     // Extract name - try multiple patterns (handle **1. Name** format)
     // Handle "### Recommendation N: Name" format first
-    let nameMatch = section.match(/### Recommendation \d+:\s*(.+?)(?:\n|$)/i);
+    let nameMatch = section.match(/###\s+Recommendation\s+\d+:\s*(.+?)(?:\n|$)/i);
+    if (nameMatch) {
+      // Extract the name part and clean it immediately
+      rec.name = cleanTitle((nameMatch[1] || '').trim());
+    }
     if (!nameMatch) {
       // Try v2 format: first line is the name
       const lines = section.split('\n').filter(l => l.trim());
@@ -58,7 +82,7 @@ function parseRecommendations(text) {
         if (firstLine &&
                     !firstLine.match(/^(https?:\/\/|www\.|Type|Why|Logistics|What|How|URL|Date|Time|Location|TBD):/i) &&
                     firstLine.length < 200) {
-          rec.name = firstLine.replace(/\*\*/g, '').trim();
+          rec.name = cleanTitle(firstLine);
         }
       }
     }
@@ -81,12 +105,17 @@ function parseRecommendations(text) {
       if (lines.length > 0) {
         const firstLine = lines[0].replace(/^\d+\.\s*/, '').trim();
         if (firstLine && !firstLine.match(/^(Type|Why|Logistics|What|How|URL):/i)) {
-          rec.name = firstLine.replace(/\*\*/g, '').trim();
+          rec.name = cleanTitle(firstLine);
         }
       }
     }
     if (nameMatch && !rec.name) {
-      rec.name = (nameMatch[1] || nameMatch[2] || '').trim().replace(/\*\*/g, '');
+      rec.name = cleanTitle((nameMatch[1] || nameMatch[2] || '').trim());
+    }
+    
+    // Clean the name if it was already set
+    if (rec.name) {
+      rec.name = cleanTitle(rec.name);
     }
 
     // Extract recurring status from Type field - handle "2. **Type:** Recurring [Category]" format
@@ -273,7 +302,7 @@ function parseRecommendations(text) {
 /**
  * Display recommendations on the page
  */
-function displayRecommendations(recommendations, userId, userName = null) {
+function displayRecommendations(recommendations, userId, userName = null, userLocation = null) {
   // Parse recommendations
   const parsedRecs = parseRecommendations(recommendations);
 
@@ -301,14 +330,28 @@ function displayRecommendations(recommendations, userId, userName = null) {
 
   // Generate simple list HTML
   const listItems = parsedRecs.map((rec, index) => {
+    // Ensure name is cleaned before display (safety check)
+    const cleanedName = cleanTitle(rec.name || '');
     const nameDisplay = rec.url
-      ? `<a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #FF8C42; text-decoration: none; font-weight: 600;">${escapeHtml(rec.name)}</a>`
-      : `<strong>${escapeHtml(rec.name)}</strong>`;
+      ? `<a href="${rec.url}" target="_blank" rel="noopener noreferrer" style="color: #FF8C42; text-decoration: none; font-weight: 600;">${escapeHtml(cleanedName)}</a>`
+      : `<strong>${escapeHtml(cleanedName)}</strong>`;
+
+    // Use userLocation from API if available, otherwise fall back to parsed location
+    // Clean up parsed location to remove zipcode patterns
+    let displayLocation = userLocation || rec.location || '';
+    // Remove zipcode patterns like "zipcode 22903" or just "22903"
+    if (displayLocation && !userLocation) {
+      displayLocation = displayLocation.replace(/zipcode\s+\d{5}/i, '').replace(/^\d{5}$/, '').trim();
+      // If location was just a zipcode and is now empty, don't show it
+      if (!displayLocation) {
+        displayLocation = '';
+      }
+    }
 
     const dateTimeLocation = [
       rec.date ? `📅 ${escapeHtml(rec.date)}` : '',
       rec.time ? `🕐 ${escapeHtml(rec.time)}` : '',
-      rec.location ? `📍 ${escapeHtml(rec.location)}` : ''
+      displayLocation ? `📍 ${escapeHtml(displayLocation)}` : ''
     ].filter(Boolean).join(' • ') || '';
 
     const recurringBadge = rec.isRecurring
@@ -397,7 +440,7 @@ async function regenerateRecommendations(userId) {
       // Handle both string and array formats
       const recommendations = result.recommendations || result.data?.recommendations;
       if (recommendations) {
-        displayRecommendations(recommendations, userId);
+        displayRecommendations(recommendations, userId, null, result.userLocation || result.data?.userLocation);
       } else {
         console.error('Unexpected response format:', result);
         alert('Recommendations were generated but format is unexpected. Please refresh the page.');
@@ -441,7 +484,12 @@ async function loadRecommendations(userId) {
     const result = await response.json();
 
     if (result.success) {
-      displayRecommendations(result.data.recommendations, userId, result.data.userName);
+      displayRecommendations(
+        result.data.recommendations, 
+        userId, 
+        result.data.userName,
+        result.data.userLocation // Pass city/state location
+      );
 
       // Remove refresh parameter from URL if present
       if (forceRefresh) {

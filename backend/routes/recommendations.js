@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Airtable = require('airtable');
+const { geocodeZipcode } = require('../services/events');
 
 // Initialize Airtable base
 if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
@@ -101,6 +102,19 @@ router.get('/recommendations/:userId', async (req, res) => {
 
     // Also fetch user data
     const user = await base('Users').find(userId);
+    
+    // Geocode zipcode to get city/state for location display
+    let userLocation = null;
+    if (user.fields?.Zipcode) {
+      try {
+        const locationData = await geocodeZipcode(user.fields.Zipcode);
+        if (locationData?.city && locationData?.state) {
+          userLocation = `${locationData.city}, ${locationData.state}`;
+        }
+      } catch (geocodeError) {
+        console.warn('Failed to geocode zipcode:', geocodeError.message);
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -109,6 +123,7 @@ router.get('/recommendations/:userId', async (req, res) => {
         userName: user.fields.Name,
         userEmail: user.fields.Email,
         recommendations: recommendations,
+        userLocation: userLocation, // City, State format
         createdAt: promptRecord.createdTime || null
       }
     });
@@ -330,10 +345,25 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
         console.error('Failed to save prompt to Airtable:', saveResult.error);
       }
 
+      // Get user location (city, state) for display
+      let userLocation = null;
+      try {
+        const user = await base('Users').find(userId);
+        if (user.fields?.Zipcode) {
+          const locationData = await geocodeZipcode(user.fields.Zipcode);
+          if (locationData?.city && locationData?.state) {
+            userLocation = `${locationData.city}, ${locationData.state}`;
+          }
+        }
+      } catch (locationError) {
+        console.warn('Failed to geocode zipcode for regenerate (legacy):', locationError.message);
+      }
+
       return res.status(200).json({
         success: true,
         userId: userId,
         recommendations: recommendations,
+        userLocation: userLocation, // City, State format
         method: method,
         message: 'Recommendations regenerated successfully (legacy system)'
       });
@@ -349,10 +379,25 @@ router.post('/recommendations/:userId/regenerate', async (req, res) => {
       ).join('\n\n---\n\n')
       : recommendations;
 
+    // Get user location (city, state) for display
+    let userLocation = null;
+    try {
+      const user = await base('Users').find(userId);
+      if (user.fields?.Zipcode) {
+        const locationData = await geocodeZipcode(user.fields.Zipcode);
+        if (locationData?.city && locationData?.state) {
+          userLocation = `${locationData.city}, ${locationData.state}`;
+        }
+      }
+    } catch (locationError) {
+      console.warn('Failed to geocode zipcode for regenerate:', locationError.message);
+    }
+
     return res.status(200).json({
       success: true,
       userId: userId,
       recommendations: recommendationsText,
+      userLocation: userLocation, // City, State format
       method: method,
       stats: stats,
       message: 'Recommendations regenerated successfully (conceptual system)'
